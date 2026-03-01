@@ -1,4 +1,3 @@
-// /js/covoiturage.js
 console.log("js funktioniert");
 let lastResults = [];
 
@@ -38,29 +37,29 @@ function initCovoiturageSearch() {
         }
     });
 
-    // Filter-Button: Filter anwenden auf letzte Ergebnisse
+    // filter button filter anwenden auf letzte ergebnisse
     const filterBtn = document.getElementById("apply-filters");
     if (filterBtn) {
         filterBtn.addEventListener("click", () => {
             if (!lastResults.length) return;
             let filtered = [...lastResults];
 
-            // Ecologique Filter
+            // Ecologique filter
             const ecological = document.getElementById("filter-ecological").value;
             if (ecological === "ecological") {
                 filtered = filtered.filter(t => t.eco);
             }
-            // Preis Filter
+            // preis filter
             const maxPrice = parseFloat(document.getElementById("filter-price").value);
             if (!isNaN(maxPrice)) {
                 filtered = filtered.filter(t => t.prix <= maxPrice);
             }
-            // Dauer Filter (Stunden)
+            // dauer filter (stunden)
             const maxDuration = parseFloat(document.getElementById("filter-duration").value);
             if (!isNaN(maxDuration)) {
                 filtered = filtered.filter(t => calcDurationInHours(t.departAt, t.arriveeAt) <= maxDuration);
             }
-            // Bewertung Filter (optional, falls vorhanden)
+            // bewertung filter
             const minRating = parseFloat(document.getElementById("filter-rating").value);
             if (!isNaN(minRating)) {
                 filtered = filtered.filter(t => (t.rating ?? 5) >= minRating);

@@ -33,7 +33,7 @@ function initHomeSearch() {
                 resultsDiv.innerHTML = "<div class='text-center text-muted'>Aucun trajet trouvé.</div>";
                 return;
             }
-            // Maximal 3 Ergebnisse
+            // maximal 3 ergebnisse
             trajets = trajets.slice(0, 3);
             resultsDiv.innerHTML = trajets.map(t => `
                 <div class="card mb-3 shadow-sm">
@@ -62,5 +62,4 @@ function formatTrajetDates(departAt, arriveeAt) {
     return `${d.toLocaleDateString('fr-FR')} • ${d.toLocaleTimeString('fr-FR', { hour: "2-digit", minute: "2-digit" })} → ${a.toLocaleTimeString('fr-FR', { hour: "2-digit", minute: "2-digit" })}`;
 }
 
-// Direkt initialisieren
 initHomeSearch();

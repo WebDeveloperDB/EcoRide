@@ -1,4 +1,3 @@
-// Pour le dashboard Employé – Gestion et validation des avis
 
 async function chargerAvisEnAttente() {
   const div = document.getElementById("pending-avis-list");

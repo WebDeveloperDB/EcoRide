@@ -1,4 +1,4 @@
-// script.js
+
 const tokenCookieName = "accesstoken";
 const RoleCookieName = "role";
 const signoutBtn = document.getElementById("signout-btn");
@@ -13,7 +13,7 @@ function getRole() {
 function signout() {
     eraseCookie(tokenCookieName);
     eraseCookie(RoleCookieName);
-    // Nettoyer aussi le localStorage
+   
     localStorage.removeItem('token');
     localStorage.removeItem('roles');
     localStorage.removeItem('email');
@@ -59,7 +59,7 @@ function isConnected() {
 
 function showAndHideElementsForRoles() {
     const userConnected = isConnected();
-    const role = getRole(); // "ROLE_ADMIN", "ROLE_EMPLOYEE"
+    const role = getRole(); 
 
     document.querySelectorAll('[data-show]').forEach(element => {
         
@@ -74,19 +74,19 @@ function showAndHideElementsForRoles() {
         else if (allowed.includes('connected') && userConnected) {
             show = true;
         }
-        // Rollen prüfen (nur wenn eingeloggt)
+        // rollen prüfen nur wenn eingeloggt
         else if (userConnected && role) {
             const roleName = role.replace("ROLE_", "").toLowerCase();
             
-            // Si l'élément demande "employe" et que l'utilisateur est ADMIN ou EMPLOYE, afficher
+            
             if (allowed.includes('employe') && (roleName === 'admin' || roleName === 'employe')) {
                 show = true;
             }
-            // Si l'élément demande "admin" et que l'utilisateur est ADMIN, afficher
+            
             else if (allowed.includes('admin') && roleName === 'admin') {
                 show = true;
             }
-            // Sinon, vérifier si le rôle correspond exactement
+           
             else if (allowed.includes(roleName)) {
                 show = true;
             }
@@ -109,7 +109,7 @@ function sanitizeHtml(text){
     return tempHtml.innerHTML; 
 }
 
-// Rendre les fonctions accessibles globalement pour router.js et autres modules
+
 window.getRole = getRole;
 window.isConnected = isConnected;
 window.getCookie = getCookie;

@@ -1,5 +1,3 @@
-// /js/newsletter/newsletter.js
-
 function initNewsletter() {
     const newsletterForm = document.getElementById("newsletter-form");
     if (!newsletterForm) return;
@@ -39,5 +37,4 @@ function validateEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-// Initialisierung SOFORT nach Laden des Moduls:
 initNewsletter();

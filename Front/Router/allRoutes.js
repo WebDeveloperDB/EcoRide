@@ -1,6 +1,6 @@
 import Route from "./Route.js";
 
-//Définir ici vos routes
+
 export const allRoutes = [
     new Route("/EcoRide/Front/", "Accueil", "/EcoRide/Front/pages/home.html", [], "/EcoRide/Front/js/home.js"),
     new Route("/EcoRide/Front/covoiturage", "Covoiturage", "/EcoRide/Front/pages/covoiturages/covoiturage.html", [], "/EcoRide/Front/js/covoiturages/covoiturages.js"),
@@ -11,9 +11,9 @@ export const allRoutes = [
     new Route("/EcoRide/Front/employeeDashboard", "Dashboard Employé", "/EcoRide/Front/pages/employee/dashboardEmployee.html", ["ROLE_EMPLOYEE"], "/EcoRide/Front/js/employee/dashboardEmployeeAvis.js"),
 ];
 
-//Le titre s'affiche comme ceci : Route.titre - websitename
+
 export const websiteName = "EcoRide";
 
-// Base path für XAMPP
+
 export const basePath = "/EcoRide/Front"; 
 

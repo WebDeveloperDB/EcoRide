@@ -1,4 +1,3 @@
-// Chargement des scripts pour la page d'accueil
 function loadScript(src) {
     const script = document.createElement("script");
     script.src = src;

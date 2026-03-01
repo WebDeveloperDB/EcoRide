@@ -68,7 +68,7 @@ const routeEvent = (event) => {
   LoadContentPage();
 };
 
-// Intercepter tous les clics sur les liens <a> pour le SPA routing
+
 document.addEventListener("click", (e) => {
   const anchor = e.target.closest("a");
   if (anchor && anchor.href && anchor.href.startsWith(window.location.origin + basePath)) {

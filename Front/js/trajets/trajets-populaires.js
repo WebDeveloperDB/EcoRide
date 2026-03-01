@@ -1,9 +1,7 @@
-// /js/trajets-populaires/trajets-populaires.js
-
 function initTrajetsPopulaires() {
     const trajetsDiv = document.getElementById("trajets-populaires");
     if (!trajetsDiv) return;
-    chargerTrajetsPopulaires(trajetsDiv, 4); // max 4 trajets auf Startseite
+    chargerTrajetsPopulaires(trajetsDiv, 4);
 }
 
 async function chargerTrajetsPopulaires(div, max = 4) {

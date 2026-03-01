@@ -14,7 +14,7 @@ class TrajetController extends AbstractController
     #[Route('/populaires', name: 'get_trajets_populaires', methods: ['GET'])]
     public function getTrajetsPopulaires(TrajetRepository $repo): JsonResponse
     {
-        // Zeigt z.B. die letzten 6 Trajets (kannst du beliebig anpassen)
+        
         $trajets = $repo->findBy([], ['departAt' => 'DESC'], 6);
         return $this->json($trajets, 200, [], ['groups' => 'trajet:read']);
     }
@@ -40,6 +40,6 @@ class TrajetController extends AbstractController
         return $this->json($trajets, 200, [], ['groups' => 'trajet:read']);
     }
 
-    // Hier kannst du beliebig weitere Methoden für Details, Buchung etc. ergänzen!
+
 }
 

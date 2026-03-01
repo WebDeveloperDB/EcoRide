@@ -3,19 +3,19 @@
         <h2 class="text-success">Rechercher un covoiturage</h2>
         <form id="search-itineraries" class="row g-3 justify-content-center">
             <div class="col-md-4">
-                <!-- Champ pour l'adresse de départ -->
+                <!-- champ pour l'adresse de depart -->
                 <input id="departure" type="text" class="form-control" placeholder="Adresse de départ" required>
             </div>
             <div class="col-md-4">
-                <!-- Champ pour l'adresse d'arrivée -->
+                <!-- champ pour l'adresse d'arrivé -->
                 <input id="destination" type="text" class="form-control" placeholder="Adresse d'arrivée" required>
             </div>
             <div class="col-md-3">
-                <!-- Champ pour la date du voyage -->
+                <!-- champ pour la date du voyage -->
                 <input id="travel-date" type="date" class="form-control" required>
             </div>
             <div class="col-md-1 p-1">
-                <!-- Bouton pour lancer la recherche -->
+            
                 <button id="search-button" type="submit" class="btn btn-success w-100">Rechercher</button>
             </div>
         </form>
@@ -25,7 +25,7 @@
         <h3 class="text-success">Filtres</h3>
         <form id="filter-form" class="row g-3">
             <div class="col-md-3">
-                <!-- Filtre pour le type de trajet (écologique ou tous) -->
+                <!-- filtre pour le type de trajet écologique ou tous -->
                 <label for="filter-ecological" class="form-label">Type de trajet</label>
                 <select id="filter-ecological" class="form-select">
                     <option value="all">Tous</option>
@@ -54,7 +54,7 @@
     <h3 class="text-success">Résultats de recherche</h3>
     <div id="no-itineraries" class="text-center text-muted">Aucun covoiturage trouvé. Veuillez ajuster votre recherche.</div>
     <div id="itineraries-container" class="row mt-4 d-none">
-        <!-- JS rendert hier dynamisch alle Ergebnisse -->
+       
     </div>
 </section>
 

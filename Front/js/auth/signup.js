@@ -28,7 +28,7 @@ function validateForm() {
     }
 }
 
-//validateMail 
+//validation mail
 function validateMail(input){
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const mailUser = input.value;
@@ -43,7 +43,7 @@ function validateMail(input){
     }
 }
 
-//validatePassword
+//validation password
 function validatePassword(input){
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_])[A-Za-z\d\W_]{8,}$/;
     const passwordUser = input.value;
@@ -71,7 +71,7 @@ function validateRequired(input){
     }
 }
 
-//ConfirmationPassword
+//confirmation password
 function validateConfirmationPassword(inputPwd, inputConfirmPwd){
     if(inputPwd.value == inputConfirmPwd.value){
         inputConfirmPwd.classList.add("is-valid");
@@ -85,7 +85,7 @@ function validateConfirmationPassword(inputPwd, inputConfirmPwd){
     }
 }
 
-// Inscription via API
+// inscription via API
 const apiUrl = "http://localhost:8000/api/registration";
 const formInscription = document.getElementById("formulaireInscription");
 

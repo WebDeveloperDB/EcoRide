@@ -1,7 +1,7 @@
 function initAvis() {
     const testimonialsDiv = document.getElementById("testimonials");
     if (testimonialsDiv) {
-        chargerAvis(testimonialsDiv, 4); // max 4 avis auf Startseite
+        chargerAvis(testimonialsDiv, 4); 
     }
 
     const avisForm = document.getElementById("avis-form");
@@ -31,7 +31,7 @@ function initAvis() {
     }
 }
 
-// Lädt maximal N avis
+// laedt maximal N avis
 async function chargerAvis(div, max = 4) {
     div.innerHTML = "<div class='text-center text-muted'>Chargement…</div>";
     try {
@@ -42,7 +42,7 @@ async function chargerAvis(div, max = 4) {
             div.innerHTML = "<div class='text-center text-muted'>Aucun avis pour le moment.</div>";
             return;
         }
-        // Maximal anzeigen
+        // maximal anzeigen
         avis = avis.slice(0, max);
         div.innerHTML = avis.map(a => `
             <div class="col-md-4 mb-3">
@@ -64,6 +64,6 @@ async function chargerAvis(div, max = 4) {
     }
 }
 
-// Direkt initialisieren (SPA-kompatibel)
+
 initAvis();
 

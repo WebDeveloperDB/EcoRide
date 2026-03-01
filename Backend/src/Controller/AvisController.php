@@ -42,7 +42,7 @@ class AvisController extends AbstractController
     {
         $avis = $repo->findBy(['isValidated' => true], ['createdAt' => 'DESC']);
 
-        // Nutzt automatisch die Groups "avis:read"
+        // nutzt automatisch die groups "avis:read"
         return $this->json($avis, 200, [], ['groups' => 'avis:read']);
     }
 
@@ -51,7 +51,7 @@ class AvisController extends AbstractController
     {
         $avis = $repo->findBy(['isValidated' => false], ['createdAt' => 'ASC']);
 
-        // Auch hier Groups "avis:read"
+        // auch hier groups "avis:read"
         return $this->json($avis, 200, [], ['groups' => 'avis:read']);
     }
 
