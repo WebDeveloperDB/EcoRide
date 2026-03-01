@@ -1,0 +1,29 @@
+# Dependencies
+Front/node_modules/
+Frontend/node_modules/
+Backend/vendor/
+Front/vendor/
+
+# Symfony
+Backend/var/
+Backend/.env.local
+Backend/.env.local.php
+Backend/.env.*.local
+Backend/public/bundles/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Compiled CSS (regenerable)
+# Front/scss/main.css
+
+# Logs
+*.log
