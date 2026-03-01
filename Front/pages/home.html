@@ -1,0 +1,200 @@
+
+<div class="bg-images mt-5">
+    <img class="bg-image" src="/EcoRide/Front/images/communauté.jpg" alt="">
+</div>
+
+
+<!-- HERO SECTION -->
+<section class="container-fluid p-0">
+  <div class="position-relative bg-success text-white text-center" style="min-height: 380px;">
+    <img src="/EcoRide/Front/images/covoiturage.jpg" alt="EcoRide Hero" class="w-100 h-100 object-fit-cover opacity-25 position-absolute top-0 start-0" style="z-index:0; max-height:380px;">
+    <div class="position-absolute top-50 start-50 translate-middle w-100" style="z-index:2;">
+      <h1 class="display-4 fw-bold">Roulez ensemble. Roulez vert.<br>Donnez le sourire à la planète.</h1>
+      <p class="lead mb-4">Le covoiturage de nouvelle génération – écologique, économique, simple.</p>
+      <a href="#search-section" class="btn btn-light btn-lg shadow">Trouver un covoiturage</a>
+    </div>
+  </div>
+</section>
+
+<!-- RECHERCHE -->
+<section id="search-section" class="container mt-5">
+  <form id="search-form" class="row g-3 justify-content-center bg-white p-4 rounded-4 shadow">
+    <div class="col-md-4">
+      <input id="departure" type="text" class="form-control" placeholder="Adresse de départ" required>
+    </div>
+    <div class="col-md-4">
+      <input id="destination" type="text" class="form-control" placeholder="Adresse d'arrivée" required>
+    </div>
+    <div class="col-md-3">
+      <input id="travel-date" type="date" class="form-control" required>
+    </div>
+    <div class="col-md-1 p-1">
+      <button id="search-button" type="submit" class="btn btn-success w-100">Rechercher</button>
+    </div>
+  </form>
+</section>
+
+<div id="search-results" class="mt-3"></div>
+
+<!-- COMMENT ÇA MARCHE -->
+<section class="container my-5">
+  <h3 class="text-center text-success mb-4">Comment ça marche ?</h3>
+  <div class="row text-center">
+    <div class="col-md-4 mb-4 mb-md-0">
+      <img src="/EcoRide/Front/images/covoiturage.jpg" width="164" height="164" alt="Rechercher">
+      <h5 class="mt-3">1. Recherchez</h5>
+      <p>Entrez votre lieu de départ et d'arrivée pour trouver des trajets adaptés.</p>
+    </div>
+    <div class="col-md-4 mb-4 mb-md-0">
+      <img src="/EcoRide/Front/images/media.media.379286f2-cbf6-49d3-bfd8-e3eaf2f1298c.original700.jpg" width="164" height="164" alt="Réserver">
+      <h5 class="mt-3">2. Réservez</h5>
+      <p>Sélectionnez un covoiturage, réservez votre place, contactez le conducteur.</p>
+    </div>
+    <div class="col-md-4">
+      <img src="/EcoRide/Front/images/kostenlose-fahrgemeinschaft-plattform-fuer-den-gewerbepark-regensburg_960x540.jpg" width="164" height="164" alt="Voyager">
+      <h5 class="mt-3">3. Voyagez</h5>
+      <p>Partagez un trajet, faites des économies et réduisez votre impact écologique !</p>
+    </div>
+  </div>
+</section>
+
+<!-- AVANTAGES -->
+<section class="container my-5">
+  <h3 class="text-center text-success mb-4">Vos avantages avec EcoRide</h3>
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="card border-success h-100 shadow">
+        <img src="/EcoRide/Front/images/covoiturage.jpg" class="card-img-top" alt="Covoiturage">
+        <div class="card-body">
+          <h5 class="card-title text-success">Économisez de l'argent</h5>
+          <p class="card-text">Partagez vos trajets et réduisez vos frais de déplacement.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-success h-100 shadow">
+        <img src="/EcoRide/Front/images/émissions.jpg" class="card-img-top" alt="Environnement">
+        <div class="card-body">
+          <h5 class="card-title text-success">Moins d'émissions</h5>
+          <p class="card-text">Réduisez le CO₂ et agissez concrètement pour la planète.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-success h-100 shadow">
+        <img src="/EcoRide/Front/images/communauté.jpg" class="card-img-top" alt="Communauté">
+        <div class="card-body">
+          <h5 class="card-title text-success">Rejoignez la communauté</h5>
+          <p class="card-text">Faites de nouvelles rencontres et échangez avec des membres engagés.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRAJETS POPULAIRES (Dynamique) -->
+<section class="container my-5">
+  <h3 class="text-center text-success mb-4">Trajets populaires</h3>
+  <div id="trajets-populaires" class="row g-4 justify-content-center">
+    <!-- Karten werden per JS dynamisch erzeugt -->
+  </div>
+</section>
+
+
+<!-- AVIS CLIENTS -->
+<section class="container my-5">
+  <h3 class="text-center text-success mb-4">Avis de nos utilisateurs</h3>
+  <div id="testimonials" class="row justify-content-center">
+  
+  </div>
+</section>
+
+
+  <!-- Formular Avis -->
+  <div class="d-flex justify-content-center reviews-container mt-5">
+    <div>
+      <form id="avis-form">
+        <h4 class="text-center mb-4">Laissez un avis</h4>
+        <div class="mb-3">
+          <label class="form-label required" for="avis_pseudo">Nom ou pseudo :</label>
+          <input type="text" id="avis_pseudo" name="pseudo" required maxlength="100" class="form-control" placeholder="Pseudo" />
+        </div>
+        <div class="mb-3">
+          <label for="avis_commentaire" class="form-label required">Votre commentaire :</label>
+          <textarea id="avis_commentaire" name="commentaire" required placeholder="Votre avis" class="form-control" rows="4" maxlength="255"></textarea>
+        </div>
+        <div class="mb-3">
+          <button type="submit" class="btn btn-success w-100">Envoyer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+
+<!-- FAQ (Dynamique) -->
+<section class="container my-5">
+  <h3 class="text-center text-success mb-4">Foire aux questions</h3>
+  <div class="accordion" id="faqAccordion">
+    <!-- Les items dynamiques peuvent être injectés ici par JS -->
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingOne">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+          Comment fonctionne EcoRide ?
+        </button>
+      </h2>
+      <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+        <div class="accordion-body">
+          Recherchez un trajet, réservez votre place et voyagez ensemble – écologique et économique.
+        </div>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingTwo">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+          Qu'est-ce qu'un covoiturage écologique ?
+        </button>
+      </h2>
+      <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+        <div class="accordion-body">
+          Un trajet réalisé en véhicule électrique ou hybride est considéré comme écologique sur la plateforme.
+        </div>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingThree">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
+          Est-ce que la plateforme est sécurisée ?
+        </button>
+      </h2>
+      <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+        <div class="accordion-body">
+          Toutes les réservations et paiements sont sécurisés. Les profils sont vérifiés.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MISSION & NEWSLETTER -->
+<section class="container my-5">
+  <div class="row align-items-center">
+    <div class="col-md-7">
+      <h3 class="text-success">Notre mission</h3>
+      <p>Avec EcoRide, nous réduisons les émissions, créons du lien social et transformons la mobilité en France.<br><strong>Chaque trajet compte – rejoignez-nous !</strong></p>
+    </div>
+    <div class="col-md-5">
+      <form id="newsletter-form" class="d-flex flex-column align-items-end bg-light p-4 rounded-3 shadow-sm">
+        <label for="newsletter" class="form-label text-success mb-2">S'inscrire à la newsletter</label>
+        <div class="input-group mb-2">
+          <input type="email" id="newsletter" class="form-control" placeholder="Votre e-mail" required>
+          <button class="btn btn-success" type="submit">S'inscrire</button>
+        </div>
+        <small class="text-muted">Recevez conseils, nouveautés et offres exclusives.</small>
+      </form>
+    </div>
+  </div>
+</section>
+
+
+</main>
