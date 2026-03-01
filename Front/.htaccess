@@ -1,0 +1,19 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /EcoRide/Front/
+    
+    # Wenn die angeforderte Ressource eine existierende Datei oder ein Ordner ist
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    
+    # Leite alle anderen Anfragen zu index.html um (für SPA-Routing)
+    RewriteRule ^(.*)$ index.html [L,QSA]
+</IfModule>
+
+# Setze index.html als Standard
+DirectoryIndex index.html
+
+# CORS-Header für lokale Entwicklung (optional)
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+</IfModule>
