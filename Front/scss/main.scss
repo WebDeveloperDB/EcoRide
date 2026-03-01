@@ -1,0 +1,67 @@
+@import url("/node_modules/bootstrap-icons/font/bootstrap-icons.css");
+@import 'custom';
+
+
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+   
+  }
+
+  //header
+.bg-images {
+    position: relative; /* Ermöglicht eine bessere Steuerung der Platzierung */
+    width: 100%; /* Volle Breite */
+    height: 70vh; /* Festgelegte Höhe für den Header */
+    overflow: hidden; /* Überschüssiges Bild außerhalb des Containers ausblenden */
+    
+}
+
+.bg-image {
+    width: 100%; /* Volle Breite */
+    height: 120%; /* Volle Höhe des Containers */
+    object-fit: cover; 
+    background-position: top;
+}
+
+
+
+//main
+main{
+    margin-bottom: 185px;
+  }
+
+
+
+//signin
+.signin-form{
+    margin-top: 10vh;
+}
+
+//signup
+.signup-form{
+    margin-top: 2vh;
+}
+
+.covoiturage-form{
+    margin-top: 50px;
+}
+
+#covoiturages-page{
+    margin-top: 100px;
+}
+
+
+  //footer
+html{
+    position: relative;
+    min-height: 100%;
+}
+
+
+footer.footer{
+    padding: 15%;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
