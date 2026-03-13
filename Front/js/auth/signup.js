@@ -93,7 +93,7 @@
         event.preventDefault();
 
         if (!validerFormulaireInscription()) {
-            alert("Merci de corriger les champs du formulaire avant de continuer.");
+            alert("Le mot de passe n'est pas assez robuste : Au moins 8  caractéres, comprenant au moins 1 lettre majuscule, 1 miniscule, 1 chiffre, et 1 caractére spéciale");
             return;
         }
 
