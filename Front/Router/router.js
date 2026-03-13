@@ -47,10 +47,15 @@ const LoadContentPage = async () => {
   const html = await fetch(actualRoute.pathHtml).then((data) => data.text());
   document.getElementById("main-page").innerHTML = html;
 
+  document.querySelectorAll("script[data-route-script='true']").forEach((script) => {
+    script.remove();
+  });
+
   if (actualRoute.pathJS != "") {
     const scriptTag = document.createElement("script");
     scriptTag.setAttribute("type", "text/javascript");
     scriptTag.setAttribute("src", actualRoute.pathJS);
+    scriptTag.setAttribute("data-route-script", "true");
     document.querySelector("body").appendChild(scriptTag);
   }
 
