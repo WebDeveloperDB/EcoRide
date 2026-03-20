@@ -23936,6 +23936,18 @@ body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
+:root {
+  --navbar-offset: 92px;
+  --content-gap-after-hero: 28px;
+}
+
+@media (max-width: 991.98px) {
+  :root {
+    --navbar-offset: 82px;
+    --content-gap-after-hero: 20px;
+  }
+}
+
 .bg-images {
   position: relative; /* Ermöglicht eine bessere Steuerung der Platzierung */
   width: 100%; /* Volle Breite */
@@ -23953,6 +23965,14 @@ body {
 
 main {
   margin-bottom: 185px;
+}
+
+main > :first-child:not(.hero-scene) {
+  margin-top: var(--navbar-offset);
+}
+
+main > .hero-scene + * {
+  margin-top: var(--content-gap-after-hero);
 }
 
 .signin-form {
