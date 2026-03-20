@@ -2,6 +2,10 @@
 
 namespace App\Controller;
 
+use App\Entity\Trajet;
+use App\Entity\Utilisateur;
+use App\Repository\VehiculeRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\TrajetRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -11,6 +15,8 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route('/api/trajet')]
 class TrajetController extends AbstractController
 {
+    private const MESSAGE_NON_AUTHENTIFIE = 'Non authentifie.';
+
     #[Route('/populaires', name: 'get_trajets_populaires', methods: ['GET'])]
     public function getTrajetsPopulaires(TrajetRepository $repo): JsonResponse
     {
@@ -38,6 +44,126 @@ class TrajetController extends AbstractController
         $trajets = $repo->search($depart, $destination, $date);
 
         return $this->json($trajets, 200, [], ['groups' => 'trajet:read']);
+    }
+
+    #[Route('', name: 'create_trajet', methods: ['POST'])]
+    public function create(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        VehiculeRepository $vehiculeRepository
+    ): JsonResponse {
+        /** @var Utilisateur|null $utilisateur */
+        $utilisateur = $this->getUser();
+        if (!$utilisateur instanceof Utilisateur) {
+            return $this->json(['message' => self::MESSAGE_NON_AUTHENTIFIE], 401);
+        }
+
+        $payload = json_decode($request->getContent(), true);
+        [$body, $status] = $this->creerTrajetDepuisPayload(
+            $payload,
+            $utilisateur,
+            $vehiculeRepository,
+            $entityManager
+        );
+
+        return $this->json($body, $status);
+    }
+
+    private function creerTrajetDepuisPayload(
+        mixed $payload,
+        Utilisateur $utilisateur,
+        VehiculeRepository $vehiculeRepository,
+        EntityManagerInterface $entityManager
+    ): array {
+        $body = [];
+        $data = [];
+
+        if (!is_array($payload)) {
+            $status = 400;
+            $body = ['message' => 'Corps JSON invalide.'];
+        } else {
+            [$data, $status, $body] = $this->validerPayloadCreation($payload);
+        }
+
+        if ($status === 201) {
+            [$body, $status] = $this->enregistrerTrajet($data, $utilisateur, $vehiculeRepository, $entityManager);
+        }
+
+        return [$body, $status];
+    }
+
+    private function validerPayloadCreation(array $payload): array
+    {
+        $data = [
+            'depart' => trim((string) ($payload['depart'] ?? '')),
+            'destination' => trim((string) ($payload['destination'] ?? '')),
+            'prix' => (float) ($payload['prix'] ?? 0),
+            'placesLibres' => (int) ($payload['placesLibres'] ?? 0),
+            'vehiculeId' => (int) ($payload['vehiculeId'] ?? 0),
+            'eco' => (bool) ($payload['eco'] ?? false),
+            'departAt' => null,
+            'arriveeAt' => null,
+        ];
+
+        $status = 201;
+        $body = [];
+
+        if ($data['depart'] === '' || $data['destination'] === '' || $data['prix'] <= 0 || $data['placesLibres'] < 1 || $data['vehiculeId'] < 1) {
+            $status = 400;
+            $body = ['message' => 'Champs obligatoires manquants ou invalides.'];
+        } else {
+            try {
+                $data['departAt'] = new \DateTimeImmutable((string) ($payload['departAt'] ?? ''));
+                $data['arriveeAt'] = new \DateTimeImmutable((string) ($payload['arriveeAt'] ?? ''));
+            } catch (\Exception) {
+                $status = 400;
+                $body = ['message' => 'Dates invalides.'];
+            }
+
+            if ($status === 201 && $data['arriveeAt'] <= $data['departAt']) {
+                $status = 400;
+                $body = ['message' => 'La date d\'arrivee doit etre apres la date de depart.'];
+            }
+        }
+
+        return [$data, $status, $body];
+    }
+
+    private function enregistrerTrajet(
+        array $data,
+        Utilisateur $utilisateur,
+        VehiculeRepository $vehiculeRepository,
+        EntityManagerInterface $entityManager
+    ): array {
+        $vehicule = $vehiculeRepository->findOneBy([
+            'id' => $data['vehiculeId'],
+            'utilisateur' => $utilisateur,
+        ]);
+
+        if ($vehicule === null) {
+            return [['message' => 'Vehicule introuvable pour cet utilisateur.'], 404];
+        }
+
+        $trajet = (new Trajet())
+            ->setDepart($data['depart'])
+            ->setDestination($data['destination'])
+            ->setDepartAt($data['departAt'])
+            ->setArriveeAt($data['arriveeAt'])
+            ->setPrix($data['prix'])
+            ->setPlacesLibres($data['placesLibres'])
+            ->setEco($data['eco'])
+            ->setConducteur($utilisateur)
+            ->setVehiculeRef($vehicule)
+            ->setDriverName($utilisateur->getPseudo())
+            ->setVehicle(trim(($vehicule->getMarque() ?? '') . ' ' . ($vehicule->getModele() ?? '')));
+
+        $entityManager->persist($trajet);
+        $entityManager->flush();
+
+        return [[
+            'message' => 'Trajet cree avec succes.',
+            'trajetId' => $trajet->getId(),
+        ], 201];
     }
 
 
