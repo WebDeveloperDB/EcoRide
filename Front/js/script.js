@@ -140,6 +140,73 @@ function initialiserAuthDeleguee() {
             return;
         }
 
+        if (formulaire.id === "vehiculeForm") {
+            
+            if (formulaire.dataset.accountScriptReady === "1") {
+                return;
+            }
+
+            event.preventDefault();
+
+            if (formulaire.dataset.enCours === "1") {
+                return;
+            }
+
+            const token = getToken();
+            if (!token) {
+                alert("Vous devez etre connecte.");
+                return;
+            }
+
+            const marque = (formulaire.querySelector("#VehiculeMarqueInput")?.value ?? "").trim();
+            const modele = (formulaire.querySelector("#VehiculeModeleInput")?.value ?? "").trim();
+            const places = Number.parseInt((formulaire.querySelector("#VehiculePlacesInput")?.value ?? "0"), 10);
+            const couleur = (formulaire.querySelector("#VehiculeCouleurInput")?.value ?? "").trim();
+            const energie = (formulaire.querySelector("#VehiculeEnergieInput")?.value ?? "").trim();
+
+            if (!marque || !modele || !Number.isInteger(places) || places < 1) {
+                alert("Merci de renseigner marque, modele et nombre de places.");
+                return;
+            }
+
+            formulaire.dataset.enCours = "1";
+
+            try {
+                const response = await fetch("http://localhost:8000/api/vehicule", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-AUTH-TOKEN": token,
+                    },
+                    body: JSON.stringify({ marque, modele, places, couleur, energie }),
+                });
+
+                const resultat = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(resultat.message || "Ajout du vehicule impossible.");
+                }
+
+                const zoneMessage = document.getElementById("profilMessage");
+                if (zoneMessage) {
+                    zoneMessage.textContent = resultat.message || "Vehicule ajoute avec succes.";
+                    zoneMessage.className = "pt-3 text-center text-success";
+                }
+
+                formulaire.reset();
+                window.dispatchEvent(new CustomEvent("vehicule:updated"));
+            } catch (erreur) {
+                const zoneMessage = document.getElementById("profilMessage");
+                if (zoneMessage) {
+                    zoneMessage.textContent = "Erreur: " + erreur.message;
+                    zoneMessage.className = "pt-3 text-center text-danger";
+                } else {
+                    alert("Erreur: " + erreur.message);
+                }
+            } finally {
+                delete formulaire.dataset.enCours;
+            }
+        }
+
         if (formulaire.id === "formulaireInscription") {
             event.preventDefault();
 

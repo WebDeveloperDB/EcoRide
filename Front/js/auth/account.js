@@ -3,18 +3,33 @@
     if (!formulaire) {
         return;
     }
+    formulaire.dataset.accountScriptReady = "1";
 
     const champPseudo = document.getElementById("PseudoInput");
     const champEmail = document.getElementById("EmailInput");
     const champCredits = document.getElementById("CreditsInput");
-    const champRole = document.getElementById("RoleInput");
     const champTypeUtilisateur = document.getElementById("TypeUtilisateurInput");
     const preferenceAnimaux = document.getElementById("PreferenceAnimaux");
     const preferenceFumeur = document.getElementById("PreferenceFumeur");
     const preferenceMusique = document.getElementById("PreferenceMusique");
     const zoneMessage = document.getElementById("profilMessage");
+    const formulaireVehicule = document.getElementById("vehiculeForm");
+    const champVehiculeMarque = document.getElementById("VehiculeMarqueInput");
+    const champVehiculeModele = document.getElementById("VehiculeModeleInput");
+    const champVehiculePlaces = document.getElementById("VehiculePlacesInput");
+    const champVehiculeCouleur = document.getElementById("VehiculeCouleurInput");
+    const champVehiculeEnergie = document.getElementById("VehiculeEnergieInput");
+    const listeVehicules = document.getElementById("vehiculesListe");
+
+    let timerMessage = null;
+
+    if (formulaireVehicule) {
+        formulaireVehicule.dataset.accountScriptReady = "1";
+    }
 
     chargerProfil();
+    chargerVehicules();
+    window.addEventListener("vehicule:updated", chargerVehicules);
 
     formulaire.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -48,17 +63,57 @@
                 throw new Error(resultat.message || "Mise à jour impossible.");
             }
 
-            afficherMessage("Profil mis à jour.", "text-success");
+            afficherMessage("Profil mis a jour avec succes.", "text-success", 7000);
             await chargerProfil(true);
         } catch (error) {
-            afficherMessage("Erreur: " + error.message, "text-danger");
+            afficherMessage("Erreur: " + error.message, "text-danger", 9000);
         }
     });
+
+    if (formulaireVehicule) {
+        formulaireVehicule.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const token = window.getToken ? window.getToken() : null;
+            if (!token) {
+                afficherMessage("Vous devez etre connecte.", "text-danger", 9000);
+                return;
+            }
+
+            try {
+                const response = await fetch("http://localhost:8000/api/vehicule", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-AUTH-TOKEN": token,
+                    },
+                    body: JSON.stringify({
+                        marque: champVehiculeMarque.value.trim(),
+                        modele: champVehiculeModele.value.trim(),
+                        places: Number.parseInt(champVehiculePlaces.value, 10),
+                        couleur: champVehiculeCouleur.value.trim(),
+                        energie: champVehiculeEnergie.value.trim(),
+                    }),
+                });
+
+                const resultat = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(resultat.message || "Ajout du vehicule impossible.");
+                }
+
+                formulaireVehicule.reset();
+                await chargerVehicules();
+                afficherMessage(resultat.message || "Vehicule ajoute avec succes.", "text-success", 7000);
+            } catch (error) {
+                afficherMessage("Erreur: " + error.message, "text-danger", 9000);
+            }
+        });
+    }
 
     async function chargerProfil(conserverMessage = false) {
         const token = window.getToken ? window.getToken() : null;
         if (!token) {
-            afficherMessage("Vous devez être connecté.", "text-danger");
+            afficherMessage("Vous devez etre connecte.", "text-danger", 9000);
             return;
         }
 
@@ -78,7 +133,6 @@
             champPseudo.value = profil.pseudo || "";
             champEmail.value = profil.email || "";
             champCredits.value = String(profil.credits ?? "");
-            champRole.value = Array.isArray(profil.roles) ? profil.roles.join(", ") : "";
             champTypeUtilisateur.value = profil.typeUtilisateur || "";
 
             const preferences = profil.preferences || {};
@@ -90,12 +144,116 @@
                 afficherMessage("", "");
             }
         } catch (error) {
-            afficherMessage("Erreur: " + error.message, "text-danger");
+            afficherMessage("Erreur: " + error.message, "text-danger", 9000);
         }
     }
 
-    function afficherMessage(message, classe) {
+    async function chargerVehicules() {
+        const token = window.getToken ? window.getToken() : null;
+        if (!token || !listeVehicules) {
+            return;
+        }
+
+        try {
+            const response = await fetch("http://localhost:8000/api/vehicule", {
+                method: "GET",
+                headers: {
+                    "X-AUTH-TOKEN": token,
+                },
+            });
+
+            const resultat = await response.json().catch(() => []);
+            if (!response.ok) {
+                throw new Error(resultat.message || "Impossible de charger les vehicules.");
+            }
+
+            afficherListeVehicules(Array.isArray(resultat) ? resultat : []);
+        } catch (error) {
+            afficherMessage("Erreur: " + error.message, "text-danger", 9000);
+        }
+    }
+
+    function afficherListeVehicules(vehicules) {
+        if (!listeVehicules) {
+            return;
+        }
+
+        if (!vehicules.length) {
+            listeVehicules.innerHTML = "<p class=\"text-muted\">Aucun vehicule enregistre pour le moment.</p>";
+            return;
+        }
+
+        const lignes = vehicules
+            .map(
+                (vehicule) => `
+                <div class="card mb-2">
+                    <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            <strong>${vehicule.marque || ""} ${vehicule.modele || ""}</strong>
+                            <div class="small text-muted">${vehicule.places} place(s)${vehicule.couleur ? ` - ${vehicule.couleur}` : ""}${vehicule.energie ? ` - ${vehicule.energie}` : ""}</div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-delete-vehicule="${vehicule.id}">Supprimer</button>
+                    </div>
+                </div>
+            `
+            )
+            .join("");
+
+        listeVehicules.innerHTML = lignes;
+
+        listeVehicules.querySelectorAll("[data-delete-vehicule]").forEach((bouton) => {
+            bouton.addEventListener("click", async () => {
+                const idVehicule = bouton.getAttribute("data-delete-vehicule");
+                if (!idVehicule) {
+                    return;
+                }
+                await supprimerVehicule(idVehicule);
+            });
+        });
+    }
+
+    async function supprimerVehicule(idVehicule) {
+        const token = window.getToken ? window.getToken() : null;
+        if (!token) {
+            afficherMessage("Vous devez etre connecte.", "text-danger", 9000);
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:8000/api/vehicule/${idVehicule}`, {
+                method: "DELETE",
+                headers: {
+                    "X-AUTH-TOKEN": token,
+                },
+            });
+
+            const resultat = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(resultat.message || "Suppression du vehicule impossible.");
+            }
+
+            await chargerVehicules();
+            afficherMessage(resultat.message || "Vehicule supprime avec succes.", "text-success", 7000);
+        } catch (error) {
+            afficherMessage("Erreur: " + error.message, "text-danger", 9000);
+        }
+    }
+
+    function afficherMessage(message, classe, dureeMs = 0) {
+        if (timerMessage) {
+            clearTimeout(timerMessage);
+            timerMessage = null;
+        }
+
         zoneMessage.textContent = message;
         zoneMessage.className = "pt-3 text-center " + (classe || "");
+
+        if (message && dureeMs > 0) {
+            timerMessage = setTimeout(() => {
+                zoneMessage.textContent = "";
+                zoneMessage.className = "pt-3 text-center";
+                timerMessage = null;
+            }, dureeMs);
+        }
     }
 })();

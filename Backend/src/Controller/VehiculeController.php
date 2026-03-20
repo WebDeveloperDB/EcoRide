@@ -1,0 +1,121 @@
+<?php
+
+namespace App\Controller;
+
+use App\Entity\Utilisateur;
+use App\Entity\Vehicule;
+use App\Repository\VehiculeRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Attribute\Route;
+
+#[Route('/api/vehicule')]
+class VehiculeController extends AbstractController
+{
+    private const MESSAGE_NON_AUTHENTIFIE = 'Non authentifie.';
+
+    #[Route('', name: 'api_vehicule_lister', methods: ['GET'])]
+    public function lister(VehiculeRepository $vehiculeRepository): JsonResponse
+    {
+        /** @var Utilisateur|null $utilisateur */
+        $utilisateur = $this->getUser();
+        if (!$utilisateur instanceof Utilisateur) {
+            return $this->nonAuthentifie();
+        }
+
+        $vehicules = $vehiculeRepository->findBy(['utilisateur' => $utilisateur], ['id' => 'DESC']);
+
+        $data = array_map(static fn (Vehicule $vehicule): array => [
+            'id' => $vehicule->getId(),
+            'marque' => $vehicule->getMarque(),
+            'modele' => $vehicule->getModele(),
+            'couleur' => $vehicule->getCouleur(),
+            'energie' => $vehicule->getEnergie(),
+            'places' => $vehicule->getPlaces(),
+        ], $vehicules);
+
+        return $this->json($data);
+    }
+
+    #[Route('', name: 'api_vehicule_creer', methods: ['POST'])]
+    public function creer(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
+        /** @var Utilisateur|null $utilisateur */
+        $utilisateur = $this->getUser();
+        if (!$utilisateur instanceof Utilisateur) {
+            return $this->nonAuthentifie();
+        }
+
+        $payload = json_decode($request->getContent(), true);
+        if (!is_array($payload)) {
+            return $this->json(['message' => 'Corps JSON invalide.'], 400);
+        }
+
+        [$body, $status] = $this->construireReponseCreation($payload, $utilisateur, $entityManager);
+
+        return $this->json($body, $status);
+    }
+
+    #[Route('/{id}', name: 'api_vehicule_supprimer', methods: ['DELETE'])]
+    public function supprimer(int $id, VehiculeRepository $vehiculeRepository, EntityManagerInterface $entityManager): JsonResponse
+    {
+        /** @var Utilisateur|null $utilisateur */
+        $utilisateur = $this->getUser();
+        if (!$utilisateur instanceof Utilisateur) {
+            return $this->nonAuthentifie();
+        }
+
+        $vehicule = $vehiculeRepository->findOneBy(['id' => $id, 'utilisateur' => $utilisateur]);
+        if (!$vehicule instanceof Vehicule) {
+            return $this->json(['message' => 'Vehicule introuvable.'], 404);
+        }
+
+        $entityManager->remove($vehicule);
+        $entityManager->flush();
+
+        return $this->json(['message' => 'Vehicule supprime avec succes.']);
+    }
+
+    private function nonAuthentifie(): JsonResponse
+    {
+        return $this->json(['message' => self::MESSAGE_NON_AUTHENTIFIE], 401);
+    }
+
+    private function construireReponseCreation(array $payload, Utilisateur $utilisateur, EntityManagerInterface $entityManager): array
+    {
+        $marque = trim((string) ($payload['marque'] ?? ''));
+        $modele = trim((string) ($payload['modele'] ?? ''));
+        $places = (int) ($payload['places'] ?? 0);
+        $couleur = trim((string) ($payload['couleur'] ?? ''));
+        $energie = trim((string) ($payload['energie'] ?? ''));
+
+        if ($marque === '' || $modele === '' || $places < 1) {
+            return [['message' => 'Marque, modele et nombre de places sont obligatoires.'], 400];
+        }
+
+        $vehicule = (new Vehicule())
+            ->setMarque($marque)
+            ->setModele($modele)
+            ->setPlaces($places)
+            ->setCouleur($couleur !== '' ? $couleur : null)
+            ->setEnergie($energie !== '' ? $energie : null)
+            ->setUtilisateur($utilisateur);
+
+        $entityManager->persist($vehicule);
+        $entityManager->flush();
+
+        return [[
+            'message' => 'Vehicule ajoute avec succes.',
+            'vehicule' => [
+                'id' => $vehicule->getId(),
+                'marque' => $vehicule->getMarque(),
+                'modele' => $vehicule->getModele(),
+                'couleur' => $vehicule->getCouleur(),
+                'energie' => $vehicule->getEnergie(),
+                'places' => $vehicule->getPlaces(),
+            ],
+        ], 201];
+    }
+}

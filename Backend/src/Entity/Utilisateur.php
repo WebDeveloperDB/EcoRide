@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UtilisateurRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -42,9 +44,13 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'token_api', length: 64, nullable: false)]
     private ?string $apiToken = null;
 
+    #[ORM\OneToMany(mappedBy: 'utilisateur', targetEntity: Vehicule::class, orphanRemoval: true)]
+    private Collection $vehicules;
+
     public function __construct()
     {
         $this->apiToken = bin2hex(random_bytes(32));
+        $this->vehicules = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -157,6 +163,33 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPreferences(?array $preferences): static
     {
         $this->preferences = $preferences;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Vehicule>
+     */
+    public function getVehicules(): Collection
+    {
+        return $this->vehicules;
+    }
+
+    public function addVehicule(Vehicule $vehicule): static
+    {
+        if (!$this->vehicules->contains($vehicule)) {
+            $this->vehicules->add($vehicule);
+            $vehicule->setUtilisateur($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVehicule(Vehicule $vehicule): static
+    {
+        if ($this->vehicules->removeElement($vehicule) && $vehicule->getUtilisateur() === $this) {
+            $vehicule->setUtilisateur(null);
+        }
 
         return $this;
     }

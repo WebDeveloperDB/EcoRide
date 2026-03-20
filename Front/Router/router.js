@@ -54,8 +54,12 @@ const LoadContentPage = async () => {
   if (actualRoute.pathJS != "") {
     const scriptTag = document.createElement("script");
     scriptTag.setAttribute("type", "text/javascript");
-    scriptTag.setAttribute("src", actualRoute.pathJS);
+    const separator = actualRoute.pathJS.includes("?") ? "&" : "?";
+    scriptTag.setAttribute("src", `${actualRoute.pathJS}${separator}v=${Date.now()}`);
     scriptTag.setAttribute("data-route-script", "true");
+    scriptTag.onerror = () => {
+      console.error("Impossible de charger le script de route:", actualRoute.pathJS);
+    };
     document.querySelector("body").appendChild(scriptTag);
   }
 

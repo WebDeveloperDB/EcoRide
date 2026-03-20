@@ -18,10 +18,6 @@
             <input type="text" class="form-control" id="CreditsInput" readonly>
         </div>
         <div class="mb-3">
-            <label for="RoleInput" class="form-label">Rôle actif</label>
-            <input type="text" class="form-control" id="RoleInput" readonly>
-        </div>
-        <div class="mb-3">
             <label for="TypeUtilisateurInput" class="form-label">Je suis</label>
             <select id="TypeUtilisateurInput" class="form-select">
                 <option value="">Choisir</option>
@@ -47,6 +43,40 @@
         </div>
     </form>
     <div id="profilMessage" class="pt-3 text-center"></div>
+
+    <hr class="my-4">
+
+    <h2 class="h4 mb-3">Mes véhicules</h2>
+    <form id="vehiculeForm" class="mb-3">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label for="VehiculeMarqueInput" class="form-label">Marque</label>
+                <input type="text" class="form-control" id="VehiculeMarqueInput" required>
+            </div>
+            <div class="col-md-4">
+                <label for="VehiculeModeleInput" class="form-label">Modèle</label>
+                <input type="text" class="form-control" id="VehiculeModeleInput" required>
+            </div>
+            <div class="col-md-4">
+                <label for="VehiculePlacesInput" class="form-label">Places</label>
+                <input type="number" min="1" max="9" class="form-control" id="VehiculePlacesInput" required>
+            </div>
+            <div class="col-md-6">
+                <label for="VehiculeCouleurInput" class="form-label">Couleur</label>
+                <input type="text" class="form-control" id="VehiculeCouleurInput">
+            </div>
+            <div class="col-md-6">
+                <label for="VehiculeEnergieInput" class="form-label">Énergie</label>
+                <input type="text" class="form-control" id="VehiculeEnergieInput" placeholder="Essence, Diesel, Electrique...">
+            </div>
+        </div>
+        <div class="text-center mt-3">
+            <button type="submit" class="btn btn-outline-primary" id="btnAjouterVehicule">Ajouter ce véhicule</button>
+        </div>
+    </form>
+
+    <div id="vehiculesListe" class="mb-2"></div>
+
     <div class="text-center pt-3">
         <a href="/EcoRide/Front/editPassword">Cliquez ici pour modifier votre mot de passe</a>
     </div>
