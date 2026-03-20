@@ -4,16 +4,49 @@
     </div>
 </div>
 <div class="container">
-    <form>
+    <form id="profilForm">
         <div class="mb-3">
             <label for="PseudoInput" class="form-label">Pseudo</label>
-            <input type="text" class="form-control" id="NomInput" placeholder="Votre nom" value="John" name="Nom"> 
+            <input type="text" class="form-control" id="PseudoInput" placeholder="Votre pseudo"> 
+        </div>
+        <div class="mb-3">
+            <label for="EmailInput" class="form-label">Email</label>
+            <input type="email" class="form-control" id="EmailInput" readonly>
+        </div>
+        <div class="mb-3">
+            <label for="CreditsInput" class="form-label">Crédits</label>
+            <input type="text" class="form-control" id="CreditsInput" readonly>
+        </div>
+        <div class="mb-3">
+            <label for="RoleInput" class="form-label">Rôle actif</label>
+            <input type="text" class="form-control" id="RoleInput" readonly>
+        </div>
+        <div class="mb-3">
+            <label for="TypeUtilisateurInput" class="form-label">Je suis</label>
+            <select id="TypeUtilisateurInput" class="form-select">
+                <option value="">Choisir</option>
+                <option value="passager">Passager</option>
+                <option value="chauffeur">Chauffeur</option>
+                <option value="les_deux">Les deux</option>
+            </select>
+        </div>
+        <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="PreferenceAnimaux">
+            <label class="form-check-label" for="PreferenceAnimaux">J'accepte les animaux</label>
+        </div>
+        <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="PreferenceFumeur">
+            <label class="form-check-label" for="PreferenceFumeur">J'accepte les fumeurs</label>
+        </div>
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="PreferenceMusique">
+            <label class="form-check-label" for="PreferenceMusique">J'aime la musique en trajet</label>
         </div>
         <div class="text-center">
-            <button type="submit" class="btn btn-primary">Modifier vos informations</button>
-            <button type="button" class="btn btn-danger">Supprimer mon compte</button>
+            <button type="submit" class="btn btn-primary" id="btnSauverProfil">Enregistrer mon profil</button>
         </div>
     </form>
+    <div id="profilMessage" class="pt-3 text-center"></div>
     <div class="text-center pt-3">
         <a href="/EcoRide/Front/editPassword">Cliquez ici pour modifier votre mot de passe</a>
     </div>

@@ -33,6 +33,12 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private int $credits = 20;
 
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $typeUtilisateur = null;
+
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $preferences = null;
+
     #[ORM\Column(name: 'token_api', length: 64, nullable: false)]
     private ?string $apiToken = null;
 
@@ -127,6 +133,30 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     public function setApiToken(string $apiToken): static
     {
         $this->apiToken = $apiToken;
+
+        return $this;
+    }
+
+    public function getTypeUtilisateur(): ?string
+    {
+        return $this->typeUtilisateur;
+    }
+
+    public function setTypeUtilisateur(?string $typeUtilisateur): static
+    {
+        $this->typeUtilisateur = $typeUtilisateur;
+
+        return $this;
+    }
+
+    public function getPreferences(): ?array
+    {
+        return $this->preferences;
+    }
+
+    public function setPreferences(?array $preferences): static
+    {
+        $this->preferences = $preferences;
 
         return $this;
     }

@@ -107,12 +107,101 @@ class AuthentificationController extends AbstractController
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
     public function infosUtilisateur(#[CurrentUser] ?Utilisateur $utilisateur): JsonResponse
     {
-        return $this->json([
+        return $this->json($this->construireProfil($utilisateur));
+    }
+
+    #[Route('/utilisateur/profil', name: 'api_profil_get', methods: ['GET'])]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    public function getProfil(#[CurrentUser] ?Utilisateur $utilisateur): JsonResponse
+    {
+        return $this->json($this->construireProfil($utilisateur));
+    }
+
+    private function construireProfil(Utilisateur $utilisateur): array
+    {
+        $preferences = $utilisateur->getPreferences() ?? [];
+
+        return [
             'id' => $utilisateur->getId(),
             'pseudo' => $utilisateur->getPseudo(),
             'email' => $utilisateur->getEmail(),
             'roles' => $utilisateur->getRoles(),
             'credits' => $utilisateur->getCredits(),
+            'typeUtilisateur' => $utilisateur->getTypeUtilisateur(),
+            'preferences' => $preferences,
+        ];
+    }
+
+    #[Route('/utilisateur/profil', name: 'api_profil_put', methods: ['PUT'])]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    public function updateProfil(
+        Request $requete,
+        #[CurrentUser] ?Utilisateur $utilisateur,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        $donnees = json_decode($requete->getContent(), true);
+        if (!is_array($donnees)) {
+            return $this->json(['message' => 'Corps JSON invalide.'], 400);
+        }
+
+        $messageErreur = $this->appliquerPseudo($donnees, $utilisateur)
+            ?? $this->appliquerTypeUtilisateur($donnees, $utilisateur)
+            ?? $this->appliquerPreferences($donnees, $utilisateur);
+
+        if ($messageErreur !== null) {
+            return $this->json(['message' => $messageErreur], 400);
+        }
+
+        $em->flush();
+
+        return $this->json([
+            'message' => 'Profil mis à jour.',
+            'profil' => $this->construireProfil($utilisateur),
         ]);
+    }
+
+    private function appliquerPseudo(array $donnees, Utilisateur $utilisateur): ?string
+    {
+        if (!isset($donnees['pseudo'])) {
+            return null;
+        }
+
+        $pseudo = trim((string) $donnees['pseudo']);
+        if ($pseudo === '') {
+            return 'Le pseudo ne peut pas être vide.';
+        }
+
+        $utilisateur->setPseudo($pseudo);
+        return null;
+    }
+
+    private function appliquerTypeUtilisateur(array $donnees, Utilisateur $utilisateur): ?string
+    {
+        if (!array_key_exists('typeUtilisateur', $donnees)) {
+            return null;
+        }
+
+        $typeUtilisateur = $donnees['typeUtilisateur'];
+        $typesAutorises = ['passager', 'chauffeur', 'les_deux', null, ''];
+        if (!in_array($typeUtilisateur, $typesAutorises, true)) {
+            return 'Type utilisateur invalide.';
+        }
+
+        $utilisateur->setTypeUtilisateur($typeUtilisateur ?: null);
+        return null;
+    }
+
+    private function appliquerPreferences(array $donnees, Utilisateur $utilisateur): ?string
+    {
+        if (!array_key_exists('preferences', $donnees)) {
+            return null;
+        }
+
+        if (!is_array($donnees['preferences'])) {
+            return 'Les préférences doivent être un objet JSON.';
+        }
+
+        $utilisateur->setPreferences($donnees['preferences']);
+        return null;
     }
 }
