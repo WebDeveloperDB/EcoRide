@@ -2,6 +2,8 @@
     const blocChargement = document.getElementById("detailTrajetChargement");
     const blocDetail = document.getElementById("detailTrajetBloc");
     const blocErreur = document.getElementById("detailTrajetErreur");
+    const formulaireAvisTrajet = document.getElementById("formulaireAvisTrajet");
+    const messageAvisTrajet = document.getElementById("messageAvisTrajet");
 
     if (!blocChargement || !blocDetail || !blocErreur) {
         return;
@@ -19,6 +21,7 @@
     }
 
     chargerDetailTrajet(idTrajet);
+    initialiserFormulaireAvis(idTrajet);
 
     async function chargerDetailTrajet(id) {
         try {
@@ -125,5 +128,57 @@
         blocChargement.classList.add("d-none");
         blocErreur.classList.remove("d-none");
         blocErreur.textContent = message;
+    }
+
+    function initialiserFormulaireAvis(idTrajetCourant) {
+        if (!formulaireAvisTrajet || !messageAvisTrajet) {
+            return;
+        }
+
+        formulaireAvisTrajet.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const pseudo = (document.getElementById("avisTrajetPseudo")?.value ?? "").trim();
+            const commentaire = (document.getElementById("avisTrajetCommentaire")?.value ?? "").trim();
+
+            if (!pseudo || !commentaire) {
+                afficherMessageAvis("Pseudo et commentaire sont obligatoires.", "text-danger");
+                return;
+            }
+
+            try {
+                const reponse = await fetch("http://localhost:8000/api/avis", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        pseudo,
+                        commentaire,
+                        trajetId: Number.parseInt(idTrajetCourant, 10),
+                    }),
+                });
+
+                const resultat = await reponse.json().catch(() => ({}));
+                if (!reponse.ok) {
+                    throw new Error(resultat.message || "Impossible d'envoyer l'avis.");
+                }
+
+                formulaireAvisTrajet.reset();
+                afficherMessageAvis(resultat.message || "Avis envoyé.", "text-success");
+                chargerDetailTrajet(idTrajetCourant);
+            } catch (erreur) {
+                afficherMessageAvis("Erreur: " + erreur.message, "text-danger");
+            }
+        });
+    }
+
+    function afficherMessageAvis(message, classe) {
+        if (!messageAvisTrajet) {
+            return;
+        }
+
+        messageAvisTrajet.textContent = message;
+        messageAvisTrajet.className = "pt-2 " + (classe || "");
     }
 })();

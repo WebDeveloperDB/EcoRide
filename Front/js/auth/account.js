@@ -23,11 +23,18 @@
     const champVehiculeEnergie = document.getElementById("VehiculeEnergieInput");
     const champVehiculePhoto = document.getElementById("VehiculePhotoInput");
     const listeVehicules = document.getElementById("vehiculesListe");
+    const boutonAjouterVehicule = document.getElementById("btnAjouterVehicule");
+    const boutonAnnulerEditionVehicule = document.getElementById("btnAnnulerEditionVehicule");
 
     let timerMessage = null;
+    let vehiculeEnEdition = null;
 
     if (formulaireVehicule) {
         formulaireVehicule.dataset.accountScriptReady = "1";
+    }
+
+    if (boutonAnnulerEditionVehicule) {
+        boutonAnnulerEditionVehicule.addEventListener("click", annulerEditionVehicule);
     }
 
     chargerProfil();
@@ -53,7 +60,6 @@
                 body: JSON.stringify({
                     pseudo: champPseudo.value.trim(),
                     typeUtilisateur: champTypeUtilisateur.value || null,
-                    photoProfil: champPhotoProfil.value.trim() || null,
                     preferences: {
                         animaux: preferenceAnimaux.checked,
                         fumeur: preferenceFumeur.checked,
@@ -105,8 +111,13 @@
                     formulaireDonnees.append("photoVehicule", champVehiculePhoto.files[0]);
                 }
 
-                const response = await fetch("http://localhost:8000/api/vehicule", {
-                    method: "POST",
+                const urlVehicule = vehiculeEnEdition
+                    ? `http://localhost:8000/api/vehicule/${vehiculeEnEdition}`
+                    : "http://localhost:8000/api/vehicule";
+                const methodeVehicule = vehiculeEnEdition ? "PUT" : "POST";
+
+                const response = await fetch(urlVehicule, {
+                    method: methodeVehicule,
                     headers: {
                         "X-AUTH-TOKEN": token,
                     },
@@ -119,8 +130,9 @@
                 }
 
                 formulaireVehicule.reset();
+                annulerEditionVehicule();
                 await chargerVehicules();
-                afficherMessage(resultat.message || "Vehicule ajoute avec succes.", "text-success", 7000);
+                afficherMessage(resultat.message || "Vehicule enregistre avec succes.", "text-success", 7000);
             } catch (error) {
                 afficherMessage("Erreur: " + error.message, "text-danger", 9000);
             }
@@ -254,7 +266,10 @@
                             <div class="small text-muted">${vehicule.places} place(s)${vehicule.couleur ? ` - ${vehicule.couleur}` : ""}${vehicule.energie ? ` - ${vehicule.energie}` : ""}</div>
                             ${vehicule.photoVehicule ? `<div class="small"><a href="${vehicule.photoVehicule}" target="_blank" rel="noopener">Voir la photo</a></div>` : ""}
                         </div>
-                        <button type="button" class="btn btn-sm btn-outline-danger" data-delete-vehicule="${vehicule.id}">Supprimer</button>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-edit-vehicule="${vehicule.id}">Modifier</button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-delete-vehicule="${vehicule.id}">Supprimer</button>
+                        </div>
                     </div>
                 </div>
             `
@@ -272,6 +287,52 @@
                 await supprimerVehicule(idVehicule);
             });
         });
+
+        listeVehicules.querySelectorAll("[data-edit-vehicule]").forEach((bouton) => {
+            bouton.addEventListener("click", () => {
+                const idVehicule = bouton.getAttribute("data-edit-vehicule");
+                if (!idVehicule) {
+                    return;
+                }
+                const vehicule = vehicules.find((unVehicule) => String(unVehicule.id) === idVehicule);
+                if (!vehicule) {
+                    return;
+                }
+                demarrerEditionVehicule(vehicule);
+            });
+        });
+    }
+
+    function demarrerEditionVehicule(vehicule) {
+        vehiculeEnEdition = vehicule.id;
+        champVehiculeMarque.value = vehicule.marque || "";
+        champVehiculeModele.value = vehicule.modele || "";
+        champVehiculePlaces.value = String(vehicule.places ?? 1);
+        champVehiculeCouleur.value = vehicule.couleur || "";
+        champVehiculeEnergie.value = vehicule.energie || "";
+        if (champVehiculePhoto) {
+            champVehiculePhoto.value = "";
+        }
+
+        if (boutonAjouterVehicule) {
+            boutonAjouterVehicule.textContent = "Enregistrer les modifications";
+            boutonAjouterVehicule.classList.add("btn-warning");
+            boutonAjouterVehicule.classList.remove("btn-outline-primary");
+        }
+
+        afficherMessage("Mode modification activé pour ce véhicule.", "text-info", 6000);
+    }
+
+    function annulerEditionVehicule() {
+        vehiculeEnEdition = null;
+        if (formulaireVehicule) {
+            formulaireVehicule.reset();
+        }
+        if (boutonAjouterVehicule) {
+            boutonAjouterVehicule.textContent = "Ajouter ce véhicule";
+            boutonAjouterVehicule.classList.remove("btn-warning");
+            boutonAjouterVehicule.classList.add("btn-outline-primary");
+        }
     }
 
     async function supprimerVehicule(idVehicule) {

@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Avis;
+use App\Repository\TrajetRepository;
 use App\Repository\AvisRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -14,7 +15,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class AvisController extends AbstractController
 {
     #[Route('', name: 'create_avis', methods: ['POST'])]
-    public function createAvis(Request $request, EntityManagerInterface $em): JsonResponse
+    public function createAvis(Request $request, EntityManagerInterface $em, TrajetRepository $trajetRepository): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
@@ -30,6 +31,15 @@ class AvisController extends AbstractController
         $avis->setCommentaire($data['commentaire']);
         $avis->setValidated(false);
         $avis->setCreatedAt(new \DateTimeImmutable());
+
+        $trajetId = (int) ($data['trajetId'] ?? 0);
+        if ($trajetId > 0) {
+            $trajet = $trajetRepository->find($trajetId);
+            if ($trajet === null) {
+                return $this->json(['message' => 'Trajet introuvable.'], 404);
+            }
+            $avis->setTrajet($trajet);
+        }
 
         $em->persist($avis);
         $em->flush();

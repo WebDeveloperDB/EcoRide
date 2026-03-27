@@ -64,8 +64,15 @@ class TrajetController extends AbstractController
 
         $avis = $avisRepository->findBy([
             'isValidated' => true,
-            'pseudo' => $trajet->getDriverName() ?? '',
+            'trajet' => $trajet,
         ], ['createdAt' => 'DESC'], 10);
+
+        if (!$avis) {
+            $avis = $avisRepository->findBy([
+                'isValidated' => true,
+                'pseudo' => $trajet->getDriverName() ?? '',
+            ], ['createdAt' => 'DESC'], 10);
+        }
 
         $avisFormat = array_map(static fn ($unAvis): array => [
             'pseudo' => $unAvis->getPseudo(),

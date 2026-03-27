@@ -113,6 +113,53 @@ class VehiculeController extends AbstractController
         return $this->json(['message' => 'Vehicule supprime avec succes.']);
     }
 
+    #[Route('/{id}', name: 'api_vehicule_modifier', methods: ['PUT'])]
+    public function modifier(
+        int $id,
+        Request $request,
+        VehiculeRepository $vehiculeRepository,
+        EntityManagerInterface $entityManager
+    ): JsonResponse {
+        /** @var Utilisateur|null $utilisateur */
+        $utilisateur = $this->getUser();
+        if (!$utilisateur instanceof Utilisateur) {
+            return $this->nonAuthentifie();
+        }
+
+        $vehicule = $vehiculeRepository->findOneBy(['id' => $id, 'utilisateur' => $utilisateur]);
+        if (!$vehicule instanceof Vehicule) {
+            return $this->json(['message' => 'Vehicule introuvable.'], 404);
+        }
+
+        $payload = json_decode($request->getContent(), true);
+        if (!is_array($payload)) {
+            $payload = $request->request->all();
+        }
+        if (!is_array($payload)) {
+            return $this->json(['message' => 'Corps de requete invalide.'], 400);
+        }
+
+        [$messageErreur, $status] = $this->mettreAJourVehiculeDepuisPayload($vehicule, $payload, $request->files->get('photoVehicule'), $request);
+        if ($messageErreur !== null) {
+            return $this->json(['message' => $messageErreur], $status);
+        }
+
+        $entityManager->flush();
+
+        return $this->json([
+            'message' => 'Vehicule modifie avec succes.',
+            'vehicule' => [
+                'id' => $vehicule->getId(),
+                'marque' => $vehicule->getMarque(),
+                'modele' => $vehicule->getModele(),
+                'couleur' => $vehicule->getCouleur(),
+                'energie' => $vehicule->getEnergie(),
+                'photoVehicule' => $vehicule->getPhotoVehicule(),
+                'places' => $vehicule->getPlaces(),
+            ],
+        ]);
+    }
+
     private function nonAuthentifie(): JsonResponse
     {
         return $this->json(['message' => self::MESSAGE_NON_AUTHENTIFIE], 401);
@@ -169,6 +216,42 @@ class VehiculeController extends AbstractController
                 'places' => $vehicule->getPlaces(),
             ],
         ], 201];
+    }
+
+    private function mettreAJourVehiculeDepuisPayload(
+        Vehicule $vehicule,
+        array $payload,
+        mixed $fichierPhotoVehicule,
+        Request $request
+    ): array {
+        $marque = trim((string) ($payload['marque'] ?? $vehicule->getMarque()));
+        $modele = trim((string) ($payload['modele'] ?? $vehicule->getModele()));
+        $places = (int) ($payload['places'] ?? $vehicule->getPlaces());
+        $couleur = trim((string) ($payload['couleur'] ?? $vehicule->getCouleur() ?? ''));
+        $energie = trim((string) ($payload['energie'] ?? $vehicule->getEnergie() ?? ''));
+
+        if ($marque === '' || $modele === '' || $places < 1) {
+            return ['Marque, modele et nombre de places sont obligatoires.', 400];
+        }
+
+        $photoVehicule = trim((string) ($payload['photoVehicule'] ?? $vehicule->getPhotoVehicule() ?? ''));
+        if ($fichierPhotoVehicule instanceof UploadedFile) {
+            $photoDepuisFichier = $this->enregistrerPhotoVehicule($fichierPhotoVehicule, $request);
+            if ($photoDepuisFichier === null) {
+                return ['Format photo invalide.', 400];
+            }
+            $photoVehicule = $photoDepuisFichier;
+        }
+
+        $vehicule
+            ->setMarque($marque)
+            ->setModele($modele)
+            ->setPlaces($places)
+            ->setCouleur($couleur !== '' ? $couleur : null)
+            ->setEnergie($energie !== '' ? $energie : null)
+            ->setPhotoVehicule($photoVehicule !== '' ? $photoVehicule : null);
+
+        return [null, 200];
     }
 
     private function enregistrerPhotoVehicule(UploadedFile $fichier, Request $request): ?string

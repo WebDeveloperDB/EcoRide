@@ -42,6 +42,26 @@
             </div>
         </div>
 
+        <div class="card mb-4">
+            <div class="card-body">
+                <h2 class="h5">Laisser un avis sur ce trajet</h2>
+                <form id="formulaireAvisTrajet" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="avisTrajetPseudo" class="form-label">Pseudo</label>
+                        <input type="text" id="avisTrajetPseudo" class="form-control" required>
+                    </div>
+                    <div class="col-md-8">
+                        <label for="avisTrajetCommentaire" class="form-label">Commentaire</label>
+                        <input type="text" id="avisTrajetCommentaire" class="form-control" required>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-outline-success">Envoyer l'avis</button>
+                    </div>
+                </form>
+                <div id="messageAvisTrajet" class="pt-2"></div>
+            </div>
+        </div>
+
         <div class="text-center mb-4">
             <button type="button" class="btn btn-success" id="btnParticiperDetail">Participer</button>
         </div>
