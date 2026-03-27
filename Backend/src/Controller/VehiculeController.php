@@ -33,6 +33,7 @@ class VehiculeController extends AbstractController
             'modele' => $vehicule->getModele(),
             'couleur' => $vehicule->getCouleur(),
             'energie' => $vehicule->getEnergie(),
+            'photoVehicule' => $vehicule->getPhotoVehicule(),
             'places' => $vehicule->getPlaces(),
         ], $vehicules);
 
@@ -90,6 +91,7 @@ class VehiculeController extends AbstractController
         $places = (int) ($payload['places'] ?? 0);
         $couleur = trim((string) ($payload['couleur'] ?? ''));
         $energie = trim((string) ($payload['energie'] ?? ''));
+        $photoVehicule = trim((string) ($payload['photoVehicule'] ?? ''));
 
         if ($marque === '' || $modele === '' || $places < 1) {
             return [['message' => 'Marque, modele et nombre de places sont obligatoires.'], 400];
@@ -101,6 +103,7 @@ class VehiculeController extends AbstractController
             ->setPlaces($places)
             ->setCouleur($couleur !== '' ? $couleur : null)
             ->setEnergie($energie !== '' ? $energie : null)
+            ->setPhotoVehicule($photoVehicule !== '' ? $photoVehicule : null)
             ->setUtilisateur($utilisateur);
 
         $entityManager->persist($vehicule);
@@ -114,6 +117,7 @@ class VehiculeController extends AbstractController
                 'modele' => $vehicule->getModele(),
                 'couleur' => $vehicule->getCouleur(),
                 'energie' => $vehicule->getEnergie(),
+                'photoVehicule' => $vehicule->getPhotoVehicule(),
                 'places' => $vehicule->getPlaces(),
             ],
         ], 201];

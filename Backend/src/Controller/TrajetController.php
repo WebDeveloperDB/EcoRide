@@ -16,6 +16,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class TrajetController extends AbstractController
 {
     private const MESSAGE_NON_AUTHENTIFIE = 'Non authentifie.';
+    private const MESSAGE_ACCES_REFUSE = 'Seul un chauffeur peut creer un trajet.';
 
     #[Route('/populaires', name: 'get_trajets_populaires', methods: ['GET'])]
     public function getTrajetsPopulaires(TrajetRepository $repo): JsonResponse
@@ -58,6 +59,10 @@ class TrajetController extends AbstractController
             return $this->json(['message' => self::MESSAGE_NON_AUTHENTIFIE], 401);
         }
 
+        if (!$this->utilisateurPeutCreerTrajet($utilisateur)) {
+            return $this->json(['message' => self::MESSAGE_ACCES_REFUSE], 403);
+        }
+
         $payload = json_decode($request->getContent(), true);
         [$body, $status] = $this->creerTrajetDepuisPayload(
             $payload,
@@ -67,6 +72,13 @@ class TrajetController extends AbstractController
         );
 
         return $this->json($body, $status);
+    }
+
+    private function utilisateurPeutCreerTrajet(Utilisateur $utilisateur): bool
+    {
+        $type = $utilisateur->getTypeUtilisateur();
+
+        return $type === 'chauffeur' || $type === 'les_deux';
     }
 
     private function creerTrajetDepuisPayload(
@@ -155,6 +167,8 @@ class TrajetController extends AbstractController
             ->setConducteur($utilisateur)
             ->setVehiculeRef($vehicule)
             ->setDriverName($utilisateur->getPseudo())
+            ->setDriverPhoto($utilisateur->getPhotoProfil())
+            ->setCarPhoto($vehicule->getPhotoVehicule())
             ->setVehicle(trim(($vehicule->getMarque() ?? '') . ' ' . ($vehicule->getModele() ?? '')));
 
         $entityManager->persist($trajet);

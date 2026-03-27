@@ -128,6 +128,7 @@ class AuthentificationController extends AbstractController
             'roles' => $utilisateur->getRoles(),
             'credits' => $utilisateur->getCredits(),
             'typeUtilisateur' => $utilisateur->getTypeUtilisateur(),
+            'photoProfil' => $utilisateur->getPhotoProfil(),
             'preferences' => $preferences,
         ];
     }
@@ -146,6 +147,7 @@ class AuthentificationController extends AbstractController
 
         $messageErreur = $this->appliquerPseudo($donnees, $utilisateur)
             ?? $this->appliquerTypeUtilisateur($donnees, $utilisateur)
+            ?? $this->appliquerPhotoProfil($donnees, $utilisateur)
             ?? $this->appliquerPreferences($donnees, $utilisateur);
 
         if ($messageErreur !== null) {
@@ -202,6 +204,18 @@ class AuthentificationController extends AbstractController
         }
 
         $utilisateur->setPreferences($donnees['preferences']);
+        return null;
+    }
+
+    private function appliquerPhotoProfil(array $donnees, Utilisateur $utilisateur): ?string
+    {
+        if (!array_key_exists('photoProfil', $donnees)) {
+            return null;
+        }
+
+        $photoProfil = trim((string) $donnees['photoProfil']);
+        $utilisateur->setPhotoProfil($photoProfil !== '' ? $photoProfil : null);
+
         return null;
     }
 }

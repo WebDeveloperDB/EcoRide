@@ -25,6 +25,9 @@ class Vehicule
     #[ORM\Column(length: 60, nullable: true)]
     private ?string $energie = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $photoVehicule = null;
+
     #[ORM\Column]
     private int $places = 1;
 
@@ -81,6 +84,18 @@ class Vehicule
     public function setEnergie(?string $energie): static
     {
         $this->energie = $energie;
+
+        return $this;
+    }
+
+    public function getPhotoVehicule(): ?string
+    {
+        return $this->photoVehicule;
+    }
+
+    public function setPhotoVehicule(?string $photoVehicule): static
+    {
+        $this->photoVehicule = $photoVehicule;
 
         return $this;
     }

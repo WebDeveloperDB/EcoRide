@@ -1,5 +1,7 @@
 console.log("js funktioniert");
 let lastResults = [];
+const PHOTO_CONDUCTEUR_PAR_DEFAUT = "/EcoRide/Front/images/environnement.jpg";
+const PHOTO_VEHICULE_PAR_DEFAUT = "/EcoRide/Front/images/covoiturage.jpg";
 
 function initCovoiturageSearch() {
     const searchForm = document.getElementById("search-itineraries");
@@ -100,8 +102,8 @@ function renderItineraries(trajets) {
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
-                        <img src="${t.driverPhoto || '/images/driver-placeholder.jpg'}" alt="Photo du chauffeur" class="rounded-circle me-3" width="50" height="50">
-                        <img src="${t.carPhoto || '/images/car-placeholder.jpg'}" alt="Photo de la voiture" class="rounded me-3" width="50" height="50">
+                        <img src="${t.driverPhoto || PHOTO_CONDUCTEUR_PAR_DEFAUT}" alt="Photo du chauffeur" class="rounded-circle me-3 object-fit-cover" width="50" height="50" onerror="this.onerror=null;this.src='${PHOTO_CONDUCTEUR_PAR_DEFAUT}'">
+                        <img src="${t.carPhoto || PHOTO_VEHICULE_PAR_DEFAUT}" alt="Photo de la voiture" class="rounded me-3 object-fit-cover" width="50" height="50" onerror="this.onerror=null;this.src='${PHOTO_VEHICULE_PAR_DEFAUT}'">
                         <div>
                             <h5 class="card-title mb-0">${t.driverName || "Chauffeur"}</h5>
                             <small class="text-muted">Note : ${(t.rating ?? "5")}/5</small>
@@ -113,7 +115,7 @@ function renderItineraries(trajets) {
                     <p class="card-text">Places restantes : <strong>${t.placesLibres}</strong></p>
                     <p class="card-text">Prix : <strong>${t.prix}€</strong></p>
                     <p class="card-text">Type de trajet : <strong>${t.eco ? "Écologique" : "Classique"}</strong></p>
-                    <a href="/pages/details.html?id=${t.id}" class="btn btn-success">Détail</a>
+                    <a href="/EcoRide/Front/covoiturage" class="btn btn-success">Détail</a>
                 </div>
             </div>
         </div>

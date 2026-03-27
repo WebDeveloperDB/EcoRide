@@ -9,6 +9,7 @@
     const champEmail = document.getElementById("EmailInput");
     const champCredits = document.getElementById("CreditsInput");
     const champTypeUtilisateur = document.getElementById("TypeUtilisateurInput");
+    const champPhotoProfil = document.getElementById("PhotoProfilInput");
     const preferenceAnimaux = document.getElementById("PreferenceAnimaux");
     const preferenceFumeur = document.getElementById("PreferenceFumeur");
     const preferenceMusique = document.getElementById("PreferenceMusique");
@@ -19,6 +20,7 @@
     const champVehiculePlaces = document.getElementById("VehiculePlacesInput");
     const champVehiculeCouleur = document.getElementById("VehiculeCouleurInput");
     const champVehiculeEnergie = document.getElementById("VehiculeEnergieInput");
+    const champVehiculePhoto = document.getElementById("VehiculePhotoInput");
     const listeVehicules = document.getElementById("vehiculesListe");
 
     let timerMessage = null;
@@ -50,6 +52,7 @@
                 body: JSON.stringify({
                     pseudo: champPseudo.value.trim(),
                     typeUtilisateur: champTypeUtilisateur.value || null,
+                    photoProfil: champPhotoProfil.value.trim() || null,
                     preferences: {
                         animaux: preferenceAnimaux.checked,
                         fumeur: preferenceFumeur.checked,
@@ -65,6 +68,10 @@
 
             afficherMessage("Profil mis a jour avec succes.", "text-success", 7000);
             await chargerProfil(true);
+
+            if (window.synchroniserTypeUtilisateur) {
+                window.synchroniserTypeUtilisateur();
+            }
         } catch (error) {
             afficherMessage("Erreur: " + error.message, "text-danger", 9000);
         }
@@ -93,6 +100,7 @@
                         places: Number.parseInt(champVehiculePlaces.value, 10),
                         couleur: champVehiculeCouleur.value.trim(),
                         energie: champVehiculeEnergie.value.trim(),
+                        photoVehicule: champVehiculePhoto.value.trim(),
                     }),
                 });
 
@@ -134,6 +142,12 @@
             champEmail.value = profil.email || "";
             champCredits.value = String(profil.credits ?? "");
             champTypeUtilisateur.value = profil.typeUtilisateur || "";
+            champPhotoProfil.value = profil.photoProfil || "";
+            localStorage.setItem("typeUtilisateur", profil.typeUtilisateur || "");
+
+            if (window.showAndHideElementsForRoles) {
+                window.showAndHideElementsForRoles();
+            }
 
             const preferences = profil.preferences || {};
             preferenceAnimaux.checked = !!preferences.animaux;
@@ -191,6 +205,7 @@
                         <div>
                             <strong>${vehicule.marque || ""} ${vehicule.modele || ""}</strong>
                             <div class="small text-muted">${vehicule.places} place(s)${vehicule.couleur ? ` - ${vehicule.couleur}` : ""}${vehicule.energie ? ` - ${vehicule.energie}` : ""}</div>
+                            ${vehicule.photoVehicule ? `<div class="small"><a href="${vehicule.photoVehicule}" target="_blank" rel="noopener">Voir la photo</a></div>` : ""}
                         </div>
                         <button type="button" class="btn btn-sm btn-outline-danger" data-delete-vehicule="${vehicule.id}">Supprimer</button>
                     </div>

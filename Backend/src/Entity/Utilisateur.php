@@ -41,6 +41,9 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $preferences = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $photoProfil = null;
+
     #[ORM\Column(name: 'token_api', length: 64, nullable: false)]
     private ?string $apiToken = null;
 
@@ -163,6 +166,18 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPreferences(?array $preferences): static
     {
         $this->preferences = $preferences;
+
+        return $this;
+    }
+
+    public function getPhotoProfil(): ?string
+    {
+        return $this->photoProfil;
+    }
+
+    public function setPhotoProfil(?string $photoProfil): static
+    {
+        $this->photoProfil = $photoProfil;
 
         return $this;
     }
