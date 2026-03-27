@@ -94,6 +94,10 @@ class AuthentificationController extends AbstractController
             return new JsonResponse(['message' => 'Identifiants invalides.'], Response::HTTP_UNAUTHORIZED);
         }
 
+        if ($utilisateur->isSuspended()) {
+            return new JsonResponse(['message' => 'Compte suspendu. Contactez un administrateur.'], Response::HTTP_FORBIDDEN);
+        }
+
         if (!$utilisateur->getApiToken()) {
             $utilisateur->setApiToken(bin2hex(random_bytes(32)));
             $em->flush();
@@ -133,6 +137,7 @@ class AuthentificationController extends AbstractController
             'roles' => $utilisateur->getRoles(),
             'credits' => $utilisateur->getCredits(),
             'typeUtilisateur' => $utilisateur->getTypeUtilisateur(),
+            'isSuspended' => $utilisateur->isSuspended(),
             'photoProfil' => $utilisateur->getPhotoProfil(),
             'preferences' => $preferences,
         ];

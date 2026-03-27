@@ -12,6 +12,7 @@ Fait
 - US10: Historique + annulation (base) OK
 - US11: Statut trajet + demarrer/arrivee + avis passagers apres arrivee OK
 - US12: Dashboard employe (auth X-AUTH-TOKEN + role checks employe/admin) OK
+- US13: Stats admin + suspension comptes + creation employe guidee OK
 - Admin trajets: boutons modifier sur pages principales OK
 
 Fait dans ce bloc
@@ -44,16 +45,21 @@ Fait dans ce bloc
 - US12 finalise:
 	- endpoints moderation avis restreints a ROLE_EMPLOYEE/ROLE_ADMIN
 	- dashboard employe passe sur header X-AUTH-TOKEN
+- US13 finalise:
+	- endpoint stats admin: GET /api/admin/stats (utilisateurs, employes, chauffeurs, passagers, trajets)
+	- suspension/reactivation compte: POST /api/admin/users/{id}/suspend et /unsuspend
+	- creation employee guidee: POST /api/admin/employees
+	- login bloque pour comptes suspendus (login + token auth)
+	- dashboard admin: section statistiques + actions suspendre/reactiver + formulaire employee guide
 
 Reste a faire
 - US4: Filtres backend complets (note/duree fiables)
-- US13: Stats admin + suspension comptes + creation employe guidee
 - Contact page + mentions legales finales
 - Tests fonctionnels complets frontend/backend
 
 Ordre propose (suite)
 1. Stabilisation bloc admin (tests manuels + corrections UX)
-2. US13 stats/suspension final
+2. US4 filtres backend complets
 3. Finitions et recette complete
 
 Regle suivi

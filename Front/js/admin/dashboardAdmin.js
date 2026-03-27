@@ -8,12 +8,14 @@
     }
 
     const zoneMessage = document.getElementById("adminMessage");
+    const zoneStats = document.getElementById("adminStats");
     const zoneUsers = document.getElementById("adminUsersList");
     const zoneVehicules = document.getElementById("adminVehiculesList");
     const zoneTrajets = document.getElementById("adminTrajetsList");
     const zoneAvis = document.getElementById("adminAvisList");
     const zoneParticipations = document.getElementById("adminParticipationsList");
 
+    const formulaireEmployee = document.getElementById("adminCreateEmployeeForm");
     const formulaireUser = document.getElementById("adminCreateUserForm");
     const formulaireVehicule = document.getElementById("adminCreateVehiculeForm");
 
@@ -21,6 +23,11 @@
 
     async function initialiser() {
         await chargerTout();
+
+        formulaireEmployee?.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            await creerEmployee();
+        });
 
         formulaireUser?.addEventListener("submit", async (event) => {
             event.preventDefault();
@@ -35,12 +42,48 @@
 
     async function chargerTout() {
         await Promise.all([
+            chargerStats(),
             chargerUsers(),
             chargerVehicules(),
             chargerTrajets(),
             chargerAvis(),
             chargerParticipations(),
         ]);
+    }
+
+    async function chargerStats() {
+        try {
+            const stats = await api("http://localhost:8000/api/admin/stats");
+            if (!zoneStats) {
+                return;
+            }
+
+            const cartes = [
+                ["Users", stats.usersTotal],
+                ["Suspendus", stats.usersSuspended],
+                ["Employes", stats.employeesTotal],
+                ["Admins", stats.adminsTotal],
+                ["Trajets", stats.trajetsTotal],
+                ["Planifies", stats.trajetsPlanifies],
+                ["En cours", stats.trajetsEnCours],
+                ["Termines", stats.trajetsTermines],
+                ["Vehicules", stats.vehiculesTotal],
+                ["Avis en attente", stats.avisPending],
+                ["Avis valides", stats.avisValidated],
+                ["Participations", stats.participationsTotal],
+            ];
+
+            zoneStats.innerHTML = cartes.map(([label, value]) => `
+                <div class="col-6 col-md-3">
+                    <div class="border rounded p-2 text-center h-100">
+                        <div class="small text-muted">${label}</div>
+                        <div class="h5 mb-0">${value ?? 0}</div>
+                    </div>
+                </div>
+            `).join("");
+        } catch (error) {
+            afficherMessage("Erreur stats: " + error.message, "text-danger");
+        }
     }
 
     async function chargerUsers() {
@@ -50,8 +93,10 @@
                 ? users.map((u) => `
                     <div class="border rounded p-2 mb-2">
                         <div><strong>#${u.id}</strong> ${u.pseudo} (${u.email}) - ${u.roles.join(", ")} - credits: ${u.credits}</div>
-                        <div class="mt-2 d-flex gap-2">
+                        <div class="small ${u.isSuspended ? "text-danger" : "text-success"}">${u.isSuspended ? "Suspendu" : "Actif"}</div>
+                        <div class="mt-2 d-flex gap-2 flex-wrap">
                             <button class="btn btn-sm btn-outline-secondary" data-edit-user="${u.id}">Modifier</button>
+                            <button class="btn btn-sm ${u.isSuspended ? "btn-outline-success" : "btn-outline-warning"}" data-toggle-suspend-user="${u.id}" data-suspended="${u.isSuspended ? "1" : "0"}">${u.isSuspended ? "Reactiver" : "Suspendre"}</button>
                             <button class="btn btn-sm btn-outline-danger" data-del-user="${u.id}">Supprimer</button>
                         </div>
                     </div>
@@ -65,18 +110,21 @@
                     if (pseudo === null) return;
                     const credits = prompt("Nouveaux credits:");
                     if (credits === null) return;
-                    const role = prompt("Role principal (ROLE_USER / ROLE_EMPLOYEE / ROLE_ADMIN):", "ROLE_USER");
-                    if (role === null) return;
+                    const nouveauRole = prompt("Role principal (ROLE_USER / ROLE_EMPLOYEE / ROLE_ADMIN):", "ROLE_USER");
+                    if (nouveauRole === null) return;
+
                     await api(`http://localhost:8000/api/admin/users/${id}`, {
                         method: "PUT",
                         body: JSON.stringify({
                             pseudo,
                             credits: Number.parseInt(credits, 10),
-                            roles: [role],
+                            roles: [nouveauRole],
                         }),
                     });
+
                     afficherMessage("Utilisateur modifie.", "text-success");
                     await chargerUsers();
+                    await chargerStats();
                 });
             });
 
@@ -89,25 +137,54 @@
                     await chargerTout();
                 });
             });
+
+            zoneUsers.querySelectorAll("[data-toggle-suspend-user]").forEach((b) => {
+                b.addEventListener("click", async () => {
+                    const id = b.getAttribute("data-toggle-suspend-user");
+                    const estSuspendu = b.getAttribute("data-suspended") === "1";
+                    const endpoint = estSuspendu ? "unsuspend" : "suspend";
+                    await api(`http://localhost:8000/api/admin/users/${id}/${endpoint}`, { method: "POST" });
+                    afficherMessage(estSuspendu ? "Compte reactive." : "Compte suspendu.", "text-success");
+                    await chargerUsers();
+                    await chargerStats();
+                });
+            });
         } catch (error) {
             afficherMessage("Erreur users: " + error.message, "text-danger");
         }
+    }
+
+    async function creerEmployee() {
+        const pseudo = document.getElementById("adminEmployeePseudo")?.value.trim();
+        const email = document.getElementById("adminEmployeeEmail")?.value.trim();
+        const password = document.getElementById("adminEmployeePassword")?.value;
+
+        await api("http://localhost:8000/api/admin/employees", {
+            method: "POST",
+            body: JSON.stringify({ pseudo, email, password }),
+        });
+
+        formulaireEmployee?.reset();
+        afficherMessage("Employe cree.", "text-success");
+        await chargerUsers();
+        await chargerStats();
     }
 
     async function creerUser() {
         const pseudo = document.getElementById("adminUserPseudo")?.value.trim();
         const email = document.getElementById("adminUserEmail")?.value.trim();
         const password = document.getElementById("adminUserPassword")?.value;
-        const role = document.getElementById("adminUserRole")?.value || "ROLE_USER";
+        const roleSelect = document.getElementById("adminUserRole")?.value || "ROLE_USER";
 
         await api("http://localhost:8000/api/admin/users", {
             method: "POST",
-            body: JSON.stringify({ pseudo, email, password, roles: [role] }),
+            body: JSON.stringify({ pseudo, email, password, roles: [roleSelect] }),
         });
 
         formulaireUser?.reset();
         afficherMessage("Utilisateur cree.", "text-success");
         await chargerUsers();
+        await chargerStats();
     }
 
     async function chargerVehicules() {
@@ -168,6 +245,7 @@
         formulaireVehicule?.reset();
         afficherMessage("Vehicule cree.", "text-success");
         await chargerVehicules();
+        await chargerStats();
     }
 
     async function chargerTrajets() {
@@ -193,13 +271,15 @@
                     if (placesLibres === null) return;
                     await api(`http://localhost:8000/api/admin/trajets/${id}`, {
                         method: "PUT",
-                        body: JSON.stringify({ prix: Number.parseFloat(prix), placesLibres: Number.parseInt(placesLibres, 10) }),
+                        body: JSON.stringify({
+                            prix: Number.parseFloat(prix),
+                            placesLibres: Number.parseInt(placesLibres, 10),
+                        }),
                     });
                     afficherMessage("Trajet modifie.", "text-success");
                     await chargerTrajets();
                 });
             });
-
         } catch (error) {
             afficherMessage("Erreur trajets: " + error.message, "text-danger");
         }
@@ -287,7 +367,10 @@
     }
 
     function afficherMessage(message, classe) {
-        if (!zoneMessage) return;
+        if (!zoneMessage) {
+            return;
+        }
+
         zoneMessage.textContent = message;
         zoneMessage.className = classe || "";
     }

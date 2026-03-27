@@ -22,6 +22,35 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route('/api/admin')]
 class AdminController extends AbstractController
 {
+    #[Route('/stats', name: 'admin_stats', methods: ['GET'])]
+    public function stats(
+        UtilisateurRepository $utilisateurRepository,
+        TrajetRepository $trajetRepository,
+        VehiculeRepository $vehiculeRepository,
+        AvisRepository $avisRepository,
+        ParticipationRepository $participationRepository
+    ): JsonResponse {
+        $admin = $this->requireAdmin();
+        if ($admin instanceof JsonResponse) {
+            return $admin;
+        }
+
+        return $this->json([
+            'usersTotal' => $utilisateurRepository->count([]),
+            'usersSuspended' => $utilisateurRepository->count(['isSuspended' => true]),
+            'employeesTotal' => $this->countByRole($utilisateurRepository, 'ROLE_EMPLOYEE'),
+            'adminsTotal' => $this->countByRole($utilisateurRepository, 'ROLE_ADMIN'),
+            'trajetsTotal' => $trajetRepository->count([]),
+            'trajetsPlanifies' => $trajetRepository->count(['statut' => 'planifie']),
+            'trajetsEnCours' => $trajetRepository->count(['statut' => 'en_cours']),
+            'trajetsTermines' => $trajetRepository->count(['statut' => 'termine']),
+            'vehiculesTotal' => $vehiculeRepository->count([]),
+            'avisPending' => $avisRepository->count(['isValidated' => false]),
+            'avisValidated' => $avisRepository->count(['isValidated' => true]),
+            'participationsTotal' => $participationRepository->count([]),
+        ]);
+    }
+
     #[Route('/users', name: 'admin_users_list', methods: ['GET'])]
     public function listUsers(UtilisateurRepository $utilisateurRepository): JsonResponse
     {
@@ -39,7 +68,56 @@ class AdminController extends AbstractController
             'roles' => $user->getRoles(),
             'credits' => $user->getCredits(),
             'typeUtilisateur' => $user->getTypeUtilisateur(),
+            'isSuspended' => $user->isSuspended(),
         ], $users));
+    }
+
+    #[Route('/employees', name: 'admin_employees_create', methods: ['POST'])]
+    public function createEmployee(
+        Request $request,
+        UtilisateurRepository $utilisateurRepository,
+        UserPasswordHasherInterface $hasher,
+        EntityManagerInterface $entityManager
+    ): JsonResponse {
+        $admin = $this->requireAdmin();
+        if ($admin instanceof JsonResponse) {
+            return $admin;
+        }
+
+        $payload = json_decode($request->getContent(), true);
+        if (!is_array($payload)) {
+            return $this->json(['message' => 'Corps JSON invalide.'], 400);
+        }
+
+        $pseudo = trim((string) ($payload['pseudo'] ?? ''));
+        $email = mb_strtolower(trim((string) ($payload['email'] ?? '')));
+        $password = trim((string) ($payload['password'] ?? ''));
+
+        if ($pseudo === '' || $email === '' || $password === '') {
+            return $this->json(['message' => 'Pseudo, email et mot de passe sont obligatoires.'], 400);
+        }
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return $this->json(['message' => 'Email invalide.'], 400);
+        }
+        if ($utilisateurRepository->findOneBy(['email' => $email])) {
+            return $this->json(['message' => 'Cet email existe deja.'], 409);
+        }
+
+        $employee = (new Utilisateur())
+            ->setPseudo($pseudo)
+            ->setEmail($email)
+            ->setRoles(['ROLE_EMPLOYEE', 'ROLE_USER'])
+            ->setCredits(20)
+            ->setTypeUtilisateur('passager');
+        $employee->setMotDePasse($hasher->hashPassword($employee, $password));
+
+        $entityManager->persist($employee);
+        $entityManager->flush();
+
+        return $this->json([
+            'message' => 'Employe cree avec succes.',
+            'id' => $employee->getId(),
+        ], 201);
     }
 
     #[Route('/users', name: 'admin_users_create', methods: ['POST'])]
@@ -169,6 +247,49 @@ class AdminController extends AbstractController
         $entityManager->flush();
 
         return $this->json(['message' => 'Utilisateur supprime avec succes.']);
+    }
+
+    #[Route('/users/{id}/suspend', name: 'admin_users_suspend', methods: ['POST'])]
+    public function suspendUser(int $id, UtilisateurRepository $utilisateurRepository, EntityManagerInterface $entityManager): JsonResponse
+    {
+        /** @var Utilisateur|JsonResponse $admin */
+        $admin = $this->requireAdmin();
+        if ($admin instanceof JsonResponse) {
+            return $admin;
+        }
+
+        $user = $utilisateurRepository->find($id);
+        if (!$user instanceof Utilisateur) {
+            return $this->json(['message' => 'Utilisateur introuvable.'], 404);
+        }
+
+        if ($admin->getId() === $user->getId()) {
+            return $this->json(['message' => 'Vous ne pouvez pas suspendre votre propre compte.'], 400);
+        }
+
+        $user->setSuspended(true);
+        $entityManager->flush();
+
+        return $this->json(['message' => 'Compte suspendu avec succes.']);
+    }
+
+    #[Route('/users/{id}/unsuspend', name: 'admin_users_unsuspend', methods: ['POST'])]
+    public function unsuspendUser(int $id, UtilisateurRepository $utilisateurRepository, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $admin = $this->requireAdmin();
+        if ($admin instanceof JsonResponse) {
+            return $admin;
+        }
+
+        $user = $utilisateurRepository->find($id);
+        if (!$user instanceof Utilisateur) {
+            return $this->json(['message' => 'Utilisateur introuvable.'], 404);
+        }
+
+        $user->setSuspended(false);
+        $entityManager->flush();
+
+        return $this->json(['message' => 'Compte reactive avec succes.']);
     }
 
     #[Route('/vehicules', name: 'admin_vehicules_list', methods: ['GET'])]
@@ -538,6 +659,18 @@ class AdminController extends AbstractController
         }
 
         return array_values(array_unique($roles));
+    }
+
+    private function countByRole(UtilisateurRepository $utilisateurRepository, string $role): int
+    {
+        $compteur = 0;
+        foreach ($utilisateurRepository->findAll() as $utilisateur) {
+            if (in_array($role, $utilisateur->getRoles(), true)) {
+                $compteur++;
+            }
+        }
+
+        return $compteur;
     }
 
     private function requireAdmin(): Utilisateur|JsonResponse

@@ -9,6 +9,25 @@
 
     <div class="card mb-4">
         <div class="card-body">
+            <h2 class="h5">Statistiques</h2>
+            <div id="adminStats" class="row g-2"></div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h2 class="h5">Creer un employe (guide)</h2>
+            <form id="adminCreateEmployeeForm" class="row g-2">
+                <div class="col-md-4"><input class="form-control" id="adminEmployeePseudo" placeholder="Pseudo employe" required></div>
+                <div class="col-md-4"><input class="form-control" id="adminEmployeeEmail" type="email" placeholder="Email employe" required></div>
+                <div class="col-md-3"><input class="form-control" id="adminEmployeePassword" type="text" placeholder="Mot de passe" required></div>
+                <div class="col-md-1"><button type="submit" class="btn btn-success w-100">Creer</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
             <h2 class="h5">Creer un utilisateur</h2>
             <form id="adminCreateUserForm" class="row g-2">
                 <div class="col-md-3"><input class="form-control" id="adminUserPseudo" placeholder="Pseudo" required></div>

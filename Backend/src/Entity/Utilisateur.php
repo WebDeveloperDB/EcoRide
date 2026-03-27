@@ -44,6 +44,9 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $photoProfil = null;
 
+    #[ORM\Column]
+    private bool $isSuspended = false;
+
     #[ORM\Column(name: 'token_api', length: 64, nullable: false)]
     private ?string $apiToken = null;
 
@@ -178,6 +181,18 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPhotoProfil(?string $photoProfil): static
     {
         $this->photoProfil = $photoProfil;
+
+        return $this;
+    }
+
+    public function isSuspended(): bool
+    {
+        return $this->isSuspended;
+    }
+
+    public function setSuspended(bool $isSuspended): static
+    {
+        $this->isSuspended = $isSuspended;
 
         return $this;
     }
