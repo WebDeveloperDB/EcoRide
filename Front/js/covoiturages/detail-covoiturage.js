@@ -4,6 +4,8 @@
     const blocErreur = document.getElementById("detailTrajetErreur");
     const formulaireAvisTrajet = document.getElementById("formulaireAvisTrajet");
     const messageAvisTrajet = document.getElementById("messageAvisTrajet");
+    const messageConditionAvis = document.getElementById("messageConditionAvis");
+    const messageParticipation = document.getElementById("messageParticipationDetail");
 
     if (!blocChargement || !blocDetail || !blocErreur) {
         return;
@@ -15,6 +17,11 @@
     if (!idTrajet) {
         afficherErreur("Trajet introuvable.");
         return;
+    }
+
+    const legacyDeleteButton = document.getElementById("btnSupprimerTrajetAdminDetail");
+    if (legacyDeleteButton) {
+        legacyDeleteButton.classList.add("d-none");
     }
 
     chargerDetailTrajet(idTrajet);
@@ -57,6 +64,7 @@
         const boutonModifierTrajetAdmin = document.getElementById("btnModifierTrajetAdminDetail");
         const boutonDemarrer = document.getElementById("btnDemarrerTrajetDetail");
         const boutonArrivee = document.getElementById("btnArriveeTrajetDetail");
+        const champPseudoAvis = document.getElementById("avisTrajetPseudo");
 
         if (detail.driverPhoto) {
             imageConducteur.src = detail.driverPhoto;
@@ -86,6 +94,16 @@
             statut.textContent = formaterStatut(detail.statut);
         }
 
+        if (messageParticipation) {
+            if (detail.isParticipating) {
+                messageParticipation.textContent = "Vous participez deja a ce trajet. Voir Historique pour les details.";
+                messageParticipation.className = "pt-2 text-success";
+            } else {
+                messageParticipation.textContent = "";
+                messageParticipation.className = "pt-2";
+            }
+        }
+
         const listePreferences = construirePreferences(detail.preferencesConducteur || {});
         preferences.innerHTML = listePreferences.length
             ? listePreferences.map((ligne) => `<li>${ligne}</li>`).join("")
@@ -101,16 +119,44 @@
             `).join("")
             : "<p class='text-muted mb-0'>Aucun avis validé pour ce conducteur.</p>";
 
-        boutonParticiper.onclick = async () => {
-            try {
-                await participerTrajet(detail.id, detail.prix);
+        if (boutonParticiper) {
+            boutonParticiper.disabled = false;
+            boutonParticiper.classList.remove("d-none");
+
+            if (detail.isParticipating) {
                 boutonParticiper.disabled = true;
-                boutonParticiper.textContent = "Participation confirmée";
-                chargerDetailTrajet(idTrajet);
-            } catch (erreur) {
-                alert("Erreur: " + erreur.message);
+                boutonParticiper.textContent = "Deja participant";
+            } else if (!detail.canParticipate) {
+                boutonParticiper.classList.add("d-none");
+            } else {
+                boutonParticiper.textContent = "Participer";
+                boutonParticiper.onclick = async () => {
+                    try {
+                        await participerTrajet(detail.id, detail.prix);
+                        boutonParticiper.disabled = true;
+                        boutonParticiper.textContent = "Participation confirmee";
+                        chargerDetailTrajet(idTrajet);
+                    } catch (erreur) {
+                        alert("Erreur: " + erreur.message);
+                    }
+                };
             }
-        };
+        }
+
+        if (formulaireAvisTrajet) {
+            formulaireAvisTrajet.classList.toggle("d-none", !detail.canLeaveAvis);
+        }
+        if (messageConditionAvis) {
+            if (detail.canLeaveAvis) {
+                messageConditionAvis.textContent = "Vous pouvez laisser un avis car vous avez participe et le trajet est termine.";
+            } else {
+                messageConditionAvis.textContent = "Avis disponible uniquement pour les passagers participants apres arrivee du trajet.";
+            }
+        }
+        if (champPseudoAvis) {
+            champPseudoAvis.value = detail.currentUserPseudo || "";
+            champPseudoAvis.readOnly = true;
+        }
 
         const adminConnecte = typeof window.getRole === "function" && window.getRole() === "ROLE_ADMIN";
         if (boutonModifierTrajetAdmin) {
@@ -225,6 +271,7 @@
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
+                        "X-AUTH-TOKEN": typeof window.getToken === "function" ? (window.getToken() || "") : "",
                     },
                     body: JSON.stringify({
                         pseudo,
@@ -282,6 +329,13 @@
 
         const resultat = await reponse.json().catch(() => ({}));
         if (!reponse.ok) {
+            if (resultat.message && /deja/i.test(resultat.message)) {
+                const allerHistorique = confirm(resultat.message + " Aller a l'historique ?");
+                if (allerHistorique) {
+                    window.location.href = "/EcoRide/Front/historique";
+                    return;
+                }
+            }
             throw new Error(resultat.message || "Participation impossible.");
         }
 

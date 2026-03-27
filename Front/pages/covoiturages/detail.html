@@ -46,6 +46,7 @@
         <div class="card mb-4">
             <div class="card-body">
                 <h2 class="h5">Laisser un avis sur ce trajet</h2>
+                <div id="messageConditionAvis" class="small text-muted mb-2"></div>
                 <form id="formulaireAvisTrajet" class="row g-3">
                     <div class="col-md-4">
                         <label for="avisTrajetPseudo" class="form-label">Pseudo</label>
@@ -63,11 +64,20 @@
             </div>
         </div>
 
+        <div class="card mb-4">
+            <div class="card-body">
+                <h2 class="h5">Participation</h2>
+                <p class="mb-1">Participer reserve une place et debite vos credits.</p>
+                <p class="mb-0">Vous retrouvez ensuite ce trajet dans <a href="/EcoRide/Front/historique">Historique</a>.</p>
+                <div id="messageParticipationDetail" class="pt-2"></div>
+            </div>
+        </div>
+
         <div class="text-center mb-4">
             <button type="button" class="btn btn-success" id="btnParticiperDetail">Participer</button>
-            <button type="button" class="btn btn-outline-secondary" id="btnModifierTrajetAdminDetail">Modifier (admin)</button>
-            <button type="button" class="btn btn-outline-primary" id="btnDemarrerTrajetDetail">Demarrer</button>
-            <button type="button" class="btn btn-outline-dark" id="btnArriveeTrajetDetail">Arrivee</button>
+            <button type="button" class="btn btn-outline-secondary d-none" id="btnModifierTrajetAdminDetail">Modifier (admin)</button>
+            <button type="button" class="btn btn-outline-primary d-none" id="btnDemarrerTrajetDetail">Demarrer</button>
+            <button type="button" class="btn btn-outline-dark d-none" id="btnArriveeTrajetDetail">Arrivee</button>
         </div>
     </div>
 

@@ -51,7 +51,12 @@ class TrajetController extends AbstractController
     }
 
     #[Route('/{id}', name: 'detail_trajet', methods: ['GET'])]
-    public function detail(int $id, TrajetRepository $repo, AvisRepository $avisRepository): JsonResponse
+    public function detail(
+        int $id,
+        TrajetRepository $repo,
+        AvisRepository $avisRepository,
+        ParticipationRepository $participationRepository
+    ): JsonResponse
     {
         $trajet = $repo->find($id);
         if (!$trajet instanceof Trajet) {
@@ -90,7 +95,22 @@ class TrajetController extends AbstractController
             $estConducteurConnecte = $trajet->getConducteur()->getId() === $utilisateurConnecte->getId();
         }
 
+        $isParticipating = false;
+        if ($utilisateurConnecte instanceof Utilisateur) {
+            $isParticipating = $participationRepository->findOneBy([
+                'utilisateur' => $utilisateurConnecte,
+                'trajet' => $trajet,
+            ]) instanceof Participation;
+        }
+
         $statut = $trajet->getStatut();
+        $canParticipate = $utilisateurConnecte instanceof Utilisateur
+            && !$estConducteurConnecte
+            && !$isParticipating
+            && $statut === 'planifie'
+            && $trajet->getPlacesLibres() > 0;
+        $canLeaveAvis = $utilisateurConnecte instanceof Utilisateur && $isParticipating && $statut === 'termine';
+        $currentUserPseudo = $utilisateurConnecte instanceof Utilisateur ? $utilisateurConnecte->getPseudo() : null;
 
         return $this->json([
             'id' => $trajet->getId(),
@@ -106,6 +126,10 @@ class TrajetController extends AbstractController
             'vehicle' => $trajet->getVehicle(),
             'placesLibres' => $trajet->getPlacesLibres(),
             'statut' => $statut,
+            'isParticipating' => $isParticipating,
+            'canParticipate' => $canParticipate,
+            'canLeaveAvis' => $canLeaveAvis,
+            'currentUserPseudo' => $currentUserPseudo,
             'canStart' => $estConducteurConnecte && $statut === 'planifie',
             'canFinish' => $estConducteurConnecte && $statut === 'en_cours',
             'preferencesConducteur' => $preferencesConducteur,
@@ -229,6 +253,10 @@ class TrajetController extends AbstractController
 
         if ($trajet->getConducteur() instanceof Utilisateur && $trajet->getConducteur()->getId() === $utilisateur->getId()) {
             return $this->json(['message' => 'Le conducteur ne peut pas participer a son propre trajet.'], 400);
+        }
+
+        if ($trajet->getStatut() !== 'planifie') {
+            return $this->json(['message' => 'La participation est possible uniquement pour un trajet planifie.'], 400);
         }
 
         if ($trajet->getPlacesLibres() < 1) {
