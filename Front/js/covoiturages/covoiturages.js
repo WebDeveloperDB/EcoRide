@@ -30,7 +30,7 @@ function initCovoiturageSearch() {
             if (!res.ok) throw new Error("Erreur lors de la recherche.");
 
             let trajets = await res.json();
-            lastResults = trajets; // speichere für Filter
+            lastResults = trajets; // speichere für filter
             renderItineraries(trajets);
         } catch (e) {
             itinerariesContainer.innerHTML = "";
@@ -116,10 +116,13 @@ function renderItineraries(trajets) {
                     <p class="card-text">Prix : <strong>${t.prix}€</strong></p>
                     <p class="card-text">Type de trajet : <strong>${t.eco ? "Écologique" : "Classique"}</strong></p>
                     <a href="/EcoRide/Front/covoiturage-detail?id=${t.id}" class="btn btn-success">Détail</a>
+                    ${construireActionsAdminCovoiturage(t)}
                 </div>
             </div>
         </div>
     `).join("");
+
+    activerActionsAdminCovoiturage(itinerariesContainer);
 }
 
 // Formatierer
@@ -128,6 +131,104 @@ function formatDate(str) {
 }
 function formatHeure(str) {
     return new Date(str).toLocaleTimeString('fr-FR', { hour: "2-digit", minute: "2-digit" });
+}
+
+function estAdminConnecteCovoiturage() {
+    return typeof window.getRole === "function" && window.getRole() === "ROLE_ADMIN";
+}
+
+function construireActionsAdminCovoiturage(trajet) {
+    if (!estAdminConnecteCovoiturage()) {
+        return "";
+    }
+
+    return `
+        <div class="d-flex gap-2 mt-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-admin-modifier-trajet-covoiturage="${trajet.id}">Modifier</button>
+            <button type="button" class="btn btn-sm btn-outline-danger" data-admin-supprimer-trajet-covoiturage="${trajet.id}">Supprimer</button>
+        </div>
+    `;
+}
+
+function activerActionsAdminCovoiturage(conteneur) {
+    if (!estAdminConnecteCovoiturage()) {
+        return;
+    }
+
+    conteneur.querySelectorAll("[data-admin-supprimer-trajet-covoiturage]").forEach((bouton) => {
+        bouton.addEventListener("click", async () => {
+            const idTrajet = bouton.getAttribute("data-admin-supprimer-trajet-covoiturage");
+            if (!idTrajet || !confirm("Supprimer ce trajet ?")) {
+                return;
+            }
+            await supprimerTrajetAdminCovoiturage(idTrajet);
+            const formulaireRecherche = document.getElementById("search-itineraries");
+            formulaireRecherche?.requestSubmit();
+        });
+    });
+
+    conteneur.querySelectorAll("[data-admin-modifier-trajet-covoiturage]").forEach((bouton) => {
+        bouton.addEventListener("click", async () => {
+            const idTrajet = bouton.getAttribute("data-admin-modifier-trajet-covoiturage");
+            if (!idTrajet) {
+                return;
+            }
+            const nouveauPrix = window.prompt("Nouveau prix du trajet :");
+            if (nouveauPrix === null) {
+                return;
+            }
+            const nouvellesPlaces = window.prompt("Nouveau nombre de places libres :");
+            if (nouvellesPlaces === null) {
+                return;
+            }
+            await modifierTrajetAdminCovoiturage(idTrajet, nouveauPrix, nouvellesPlaces);
+            const formulaireRecherche = document.getElementById("search-itineraries");
+            formulaireRecherche?.requestSubmit();
+        });
+    });
+}
+
+async function supprimerTrajetAdminCovoiturage(idTrajet) {
+    const token = typeof window.getToken === "function" ? window.getToken() : null;
+    if (!token) {
+        alert("Connexion admin requise.");
+        return;
+    }
+
+    const reponse = await fetch(`http://localhost:8000/api/trajet/${idTrajet}`, {
+        method: "DELETE",
+        headers: {
+            "X-AUTH-TOKEN": token,
+        },
+    });
+    if (!reponse.ok) {
+        const resultat = await reponse.json().catch(() => ({}));
+        throw new Error(resultat.message || "Suppression impossible.");
+    }
+}
+
+async function modifierTrajetAdminCovoiturage(idTrajet, prix, placesLibres) {
+    const token = typeof window.getToken === "function" ? window.getToken() : null;
+    if (!token) {
+        alert("Connexion admin requise.");
+        return;
+    }
+
+    const reponse = await fetch(`http://localhost:8000/api/trajet/${idTrajet}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "X-AUTH-TOKEN": token,
+        },
+        body: JSON.stringify({
+            prix: Number.parseFloat(prix),
+            placesLibres: Number.parseInt(placesLibres, 10),
+        }),
+    });
+    if (!reponse.ok) {
+        const resultat = await reponse.json().catch(() => ({}));
+        throw new Error(resultat.message || "Modification impossible.");
+    }
 }
 
 // Init sofort aufrufen (SPA-Ready)

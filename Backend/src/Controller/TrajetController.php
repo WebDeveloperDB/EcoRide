@@ -2,9 +2,11 @@
 
 namespace App\Controller;
 
+use App\Entity\Participation;
 use App\Entity\Trajet;
 use App\Entity\Utilisateur;
 use App\Repository\AvisRepository;
+use App\Repository\ParticipationRepository;
 use App\Repository\VehiculeRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\TrajetRepository;
@@ -125,11 +127,149 @@ class TrajetController extends AbstractController
         return $this->json($body, $status);
     }
 
+    #[Route('/{id}', name: 'modifier_trajet', methods: ['PUT'])]
+    public function modifier(int $id, Request $request, TrajetRepository $repo, EntityManagerInterface $entityManager): JsonResponse
+    {
+        /** @var Utilisateur|null $utilisateur */
+        $utilisateur = $this->getUser();
+        if (!$utilisateur instanceof Utilisateur) {
+            return $this->json(['message' => self::MESSAGE_NON_AUTHENTIFIE], 401);
+        }
+
+        $trajet = $repo->find($id);
+        if (!$trajet instanceof Trajet) {
+            return $this->json(['message' => 'Trajet introuvable.'], 404);
+        }
+
+        if (!$this->peutAdministrerTrajet($utilisateur, $trajet)) {
+            return $this->json(['message' => 'Acces refuse.'], 403);
+        }
+
+        $donnees = json_decode($request->getContent(), true);
+        if (!is_array($donnees)) {
+            return $this->json(['message' => 'Corps JSON invalide.'], 400);
+        }
+
+        $depart = trim((string) ($donnees['depart'] ?? $trajet->getDepart() ?? ''));
+        $destination = trim((string) ($donnees['destination'] ?? $trajet->getDestination() ?? ''));
+        $prix = isset($donnees['prix']) ? (float) $donnees['prix'] : (float) ($trajet->getPrix() ?? 0);
+        $placesLibres = isset($donnees['placesLibres']) ? (int) $donnees['placesLibres'] : $trajet->getPlacesLibres();
+        $eco = isset($donnees['eco']) ? (bool) $donnees['eco'] : $trajet->isEco();
+
+        if ($depart === '' || $destination === '' || $prix <= 0 || $placesLibres < 0) {
+            return $this->json(['message' => 'Donnees invalides pour la modification.'], 400);
+        }
+
+        $trajet
+            ->setDepart($depart)
+            ->setDestination($destination)
+            ->setPrix($prix)
+            ->setPlacesLibres($placesLibres)
+            ->setEco($eco);
+
+        $entityManager->flush();
+
+        return $this->json(['message' => 'Trajet modifie avec succes.']);
+    }
+
+    #[Route('/{id}', name: 'supprimer_trajet', methods: ['DELETE'])]
+    public function supprimer(int $id, TrajetRepository $repo, EntityManagerInterface $entityManager): JsonResponse
+    {
+        /** @var Utilisateur|null $utilisateur */
+        $utilisateur = $this->getUser();
+        if (!$utilisateur instanceof Utilisateur) {
+            return $this->json(['message' => self::MESSAGE_NON_AUTHENTIFIE], 401);
+        }
+
+        $trajet = $repo->find($id);
+        if (!$trajet instanceof Trajet) {
+            return $this->json(['message' => 'Trajet introuvable.'], 404);
+        }
+
+        if (!$this->peutAdministrerTrajet($utilisateur, $trajet)) {
+            return $this->json(['message' => 'Acces refuse.'], 403);
+        }
+
+        $entityManager->remove($trajet);
+        $entityManager->flush();
+
+        return $this->json(['message' => 'Trajet supprime avec succes.']);
+    }
+
+    #[Route('/{id}/participer', name: 'participer_trajet', methods: ['POST'])]
+    public function participer(
+        int $id,
+        TrajetRepository $repo,
+        ParticipationRepository $participationRepository,
+        EntityManagerInterface $entityManager
+    ): JsonResponse {
+        /** @var Utilisateur|null $utilisateur */
+        $utilisateur = $this->getUser();
+        if (!$utilisateur instanceof Utilisateur) {
+            return $this->json(['message' => self::MESSAGE_NON_AUTHENTIFIE], 401);
+        }
+
+        $trajet = $repo->find($id);
+        if (!$trajet instanceof Trajet) {
+            return $this->json(['message' => 'Trajet introuvable.'], 404);
+        }
+
+        if ($trajet->getConducteur() instanceof Utilisateur && $trajet->getConducteur()->getId() === $utilisateur->getId()) {
+            return $this->json(['message' => 'Le conducteur ne peut pas participer a son propre trajet.'], 400);
+        }
+
+        if ($trajet->getPlacesLibres() < 1) {
+            return $this->json(['message' => 'Plus de place disponible.'], 400);
+        }
+
+        $participationExistante = $participationRepository->findOneBy([
+            'utilisateur' => $utilisateur,
+            'trajet' => $trajet,
+        ]);
+        if ($participationExistante instanceof Participation) {
+            return $this->json(['message' => 'Vous participez deja a ce trajet.'], 400);
+        }
+
+        $creditsRequis = (int) ceil((float) ($trajet->getPrix() ?? 0));
+        if ($utilisateur->getCredits() < $creditsRequis) {
+            return $this->json(['message' => 'Credits insuffisants pour participer.'], 400);
+        }
+
+        $utilisateur->setCredits($utilisateur->getCredits() - $creditsRequis);
+        $trajet->setPlacesLibres($trajet->getPlacesLibres() - 1);
+
+        $participation = (new Participation())
+            ->setUtilisateur($utilisateur)
+            ->setTrajet($trajet)
+            ->setCreditsUtilises($creditsRequis)
+            ->setCreatedAt(new \DateTimeImmutable());
+
+        $entityManager->persist($participation);
+        $entityManager->flush();
+
+        return $this->json([
+            'message' => 'Participation confirmee avec succes.',
+            'creditsRestants' => $utilisateur->getCredits(),
+            'placesRestantes' => $trajet->getPlacesLibres(),
+        ]);
+    }
+
     private function utilisateurPeutCreerTrajet(Utilisateur $utilisateur): bool
     {
         $type = $utilisateur->getTypeUtilisateur();
+        $roles = $utilisateur->getRoles();
 
-        return $type === 'chauffeur' || $type === 'les_deux';
+        return in_array('ROLE_ADMIN', $roles, true) || $type === 'chauffeur' || $type === 'les_deux';
+    }
+
+    private function peutAdministrerTrajet(Utilisateur $utilisateur, Trajet $trajet): bool
+    {
+        if (in_array('ROLE_ADMIN', $utilisateur->getRoles(), true)) {
+            return true;
+        }
+
+        $conducteur = $trajet->getConducteur();
+        return $conducteur instanceof Utilisateur && $conducteur->getId() === $utilisateur->getId();
     }
 
     private function creerTrajetDepuisPayload(

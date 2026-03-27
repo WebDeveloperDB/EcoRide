@@ -54,6 +54,8 @@
         const preferences = document.getElementById("detailPreferences");
         const avis = document.getElementById("detailAvis");
         const boutonParticiper = document.getElementById("btnParticiperDetail");
+        const boutonModifierTrajetAdmin = document.getElementById("btnModifierTrajetAdminDetail");
+        const boutonSupprimerTrajetAdmin = document.getElementById("btnSupprimerTrajetAdminDetail");
 
         imageConducteur.src = detail.driverPhoto || photoConducteurParDefaut;
         imageConducteur.onerror = () => {
@@ -91,9 +93,50 @@
             `).join("")
             : "<p class='text-muted mb-0'>Aucun avis validé pour ce conducteur.</p>";
 
-        boutonParticiper.addEventListener("click", () => {
-            alert("Participation: fonctionnalité prévue à l'étape suivante.");
-        });
+        boutonParticiper.onclick = async () => {
+            try {
+                await participerTrajet(detail.id, detail.prix);
+                chargerDetailTrajet(idTrajet);
+            } catch (erreur) {
+                alert("Erreur: " + erreur.message);
+            }
+        };
+
+        const adminConnecte = typeof window.getRole === "function" && window.getRole() === "ROLE_ADMIN";
+        if (boutonModifierTrajetAdmin) {
+            boutonModifierTrajetAdmin.classList.toggle("d-none", !adminConnecte);
+            boutonModifierTrajetAdmin.onclick = async () => {
+                const nouveauPrix = window.prompt("Nouveau prix du trajet :", String(detail.prix ?? ""));
+                if (nouveauPrix === null) {
+                    return;
+                }
+                const nouvellesPlaces = window.prompt("Nouveau nombre de places libres :", String(detail.placesLibres ?? ""));
+                if (nouvellesPlaces === null) {
+                    return;
+                }
+                try {
+                    await modifierTrajetAdmin(detail.id, nouveauPrix, nouvellesPlaces);
+                    chargerDetailTrajet(idTrajet);
+                } catch (erreur) {
+                    alert("Erreur: " + erreur.message);
+                }
+            };
+        }
+
+        if (boutonSupprimerTrajetAdmin) {
+            boutonSupprimerTrajetAdmin.classList.toggle("d-none", !adminConnecte);
+            boutonSupprimerTrajetAdmin.onclick = async () => {
+                if (!confirm("Supprimer ce trajet ?")) {
+                    return;
+                }
+                try {
+                    await supprimerTrajetAdmin(detail.id);
+                    window.location.href = "/EcoRide/Front/covoiturage";
+                } catch (erreur) {
+                    alert("Erreur: " + erreur.message);
+                }
+            };
+        }
     }
 
     function construirePreferences(preferencesConducteur) {
@@ -180,5 +223,80 @@
 
         messageAvisTrajet.textContent = message;
         messageAvisTrajet.className = "pt-2 " + (classe || "");
+    }
+
+    async function participerTrajet(idTrajetCourant, prixTrajet) {
+        const token = typeof window.getToken === "function" ? window.getToken() : null;
+        if (!token) {
+            const allerConnexion = confirm("Vous devez vous connecter pour participer. Aller a la connexion ?");
+            if (allerConnexion) {
+                window.location.href = "/EcoRide/Front/signin";
+            }
+            return;
+        }
+
+        if (!confirm(`Confirmer la participation a ce trajet pour environ ${Math.ceil(Number(prixTrajet || 0))} credits ?`)) {
+            return;
+        }
+        if (!confirm("Confirmation finale: valider la participation ?")) {
+            return;
+        }
+
+        const reponse = await fetch(`http://localhost:8000/api/trajet/${idTrajetCourant}/participer`, {
+            method: "POST",
+            headers: {
+                "X-AUTH-TOKEN": token,
+            },
+        });
+
+        const resultat = await reponse.json().catch(() => ({}));
+        if (!reponse.ok) {
+            throw new Error(resultat.message || "Participation impossible.");
+        }
+
+        alert(resultat.message || "Participation confirmee.");
+    }
+
+    async function modifierTrajetAdmin(idTrajetCourant, prix, placesLibres) {
+        const token = typeof window.getToken === "function" ? window.getToken() : null;
+        if (!token) {
+            throw new Error("Connexion admin requise.");
+        }
+
+        const reponse = await fetch(`http://localhost:8000/api/trajet/${idTrajetCourant}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "X-AUTH-TOKEN": token,
+            },
+            body: JSON.stringify({
+                prix: Number.parseFloat(prix),
+                placesLibres: Number.parseInt(placesLibres, 10),
+            }),
+        });
+
+        if (!reponse.ok) {
+            const resultat = await reponse.json().catch(() => ({}));
+            throw new Error(resultat.message || "Modification impossible.");
+        }
+    }
+
+    async function supprimerTrajetAdmin(idTrajetCourant) {
+        const token = typeof window.getToken === "function" ? window.getToken() : null;
+        if (!token) {
+            throw new Error("Connexion admin requise.");
+        }
+
+        const reponse = await fetch(`http://localhost:8000/api/trajet/${idTrajetCourant}`, {
+            method: "DELETE",
+            headers: {
+                "X-AUTH-TOKEN": token,
+            },
+        });
+
+        if (!reponse.ok) {
+            const resultat = await reponse.json().catch(() => ({}));
+            throw new Error(resultat.message || "Suppression impossible.");
+        }
     }
 })();
