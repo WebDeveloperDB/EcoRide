@@ -94,6 +94,11 @@ class AvisController extends AbstractController
     #[Route('/pending', name: 'get_pending_avis', methods: ['GET'])]
     public function getPendingAvis(AvisRepository $repo): JsonResponse
     {
+        $acces = $this->refuserSiPasEmployeOuAdmin();
+        if ($acces instanceof JsonResponse) {
+            return $acces;
+        }
+
         $avis = $repo->findBy(['isValidated' => false], ['createdAt' => 'ASC']);
 
         // auch hier groups "avis:read"
@@ -103,6 +108,11 @@ class AvisController extends AbstractController
     #[Route('/{id}/validate', name: 'validate_avis', methods: ['POST'])]
     public function validateAvis(Avis $avis, EntityManagerInterface $em): JsonResponse
     {
+        $acces = $this->refuserSiPasEmployeOuAdmin();
+        if ($acces instanceof JsonResponse) {
+            return $acces;
+        }
+
         if ($avis->isValidated()) {
             return $this->json(['message' => 'Cet avis est déjà validé.'], 400);
         }
@@ -115,9 +125,32 @@ class AvisController extends AbstractController
     #[Route('/{id}', name: 'delete_avis', methods: ['DELETE'])]
     public function deleteAvis(Avis $avis, EntityManagerInterface $em): JsonResponse
     {
+        $acces = $this->refuserSiPasEmployeOuAdmin();
+        if ($acces instanceof JsonResponse) {
+            return $acces;
+        }
+
         $em->remove($avis);
         $em->flush();
 
         return $this->json(['message' => 'Avis supprimé.']);
+    }
+
+    private function refuserSiPasEmployeOuAdmin(): ?JsonResponse
+    {
+        /** @var Utilisateur|null $utilisateur */
+        $utilisateur = $this->getUser();
+        if (!$utilisateur instanceof Utilisateur) {
+            return $this->json(['message' => 'Non authentifie.'], 401);
+        }
+
+        $roles = $utilisateur->getRoles();
+        $estEmploye = in_array('ROLE_EMPLOYEE', $roles, true);
+        $estAdmin = in_array('ROLE_ADMIN', $roles, true);
+        if (!$estEmploye && !$estAdmin) {
+            return $this->json(['message' => 'Acces reserve aux employes et administrateurs.'], 403);
+        }
+
+        return null;
     }
 }
