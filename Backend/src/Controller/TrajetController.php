@@ -58,6 +58,9 @@ class TrajetController extends AbstractController
             return $this->json(['message' => 'Trajet introuvable.'], 404);
         }
 
+        /** @var Utilisateur|null $utilisateurConnecte */
+        $utilisateurConnecte = $this->getUser();
+
         $preferencesConducteur = [];
         $conducteur = $trajet->getConducteur();
         if ($conducteur instanceof Utilisateur) {
@@ -82,6 +85,13 @@ class TrajetController extends AbstractController
             'createdAt' => $unAvis->getCreatedAt()?->format(DATE_ATOM),
         ], $avis);
 
+        $estConducteurConnecte = false;
+        if ($utilisateurConnecte instanceof Utilisateur && $trajet->getConducteur() instanceof Utilisateur) {
+            $estConducteurConnecte = $trajet->getConducteur()->getId() === $utilisateurConnecte->getId();
+        }
+
+        $statut = $trajet->getStatut();
+
         return $this->json([
             'id' => $trajet->getId(),
             'depart' => $trajet->getDepart(),
@@ -95,6 +105,9 @@ class TrajetController extends AbstractController
             'carPhoto' => $trajet->getCarPhoto(),
             'vehicle' => $trajet->getVehicle(),
             'placesLibres' => $trajet->getPlacesLibres(),
+            'statut' => $statut,
+            'canStart' => $estConducteurConnecte && $statut === 'planifie',
+            'canFinish' => $estConducteurConnecte && $statut === 'en_cours',
             'preferencesConducteur' => $preferencesConducteur,
             'avisConducteur' => $avisFormat,
         ]);
@@ -254,6 +267,74 @@ class TrajetController extends AbstractController
         ]);
     }
 
+    #[Route('/{id}/demarrer', name: 'demarrer_trajet', methods: ['POST'])]
+    public function demarrer(
+        int $id,
+        TrajetRepository $repo,
+        EntityManagerInterface $entityManager
+    ): JsonResponse {
+        /** @var Utilisateur|null $utilisateur */
+        $utilisateur = $this->getUser();
+        if (!$utilisateur instanceof Utilisateur) {
+            return $this->json(['message' => self::MESSAGE_NON_AUTHENTIFIE], 401);
+        }
+
+        $trajet = $repo->find($id);
+        if (!$trajet instanceof Trajet) {
+            return $this->json(['message' => 'Trajet introuvable.'], 404);
+        }
+
+        if (!$this->peutPiloterTrajet($utilisateur, $trajet)) {
+            return $this->json(['message' => 'Seul le conducteur peut demarrer ce trajet.'], 403);
+        }
+
+        if ($trajet->getStatut() !== 'planifie') {
+            return $this->json(['message' => 'Le trajet ne peut pas etre demarre dans son etat actuel.'], 400);
+        }
+
+        $trajet->setStatut('en_cours');
+        $entityManager->flush();
+
+        return $this->json([
+            'message' => 'Trajet demarre avec succes.',
+            'statut' => $trajet->getStatut(),
+        ]);
+    }
+
+    #[Route('/{id}/arrivee', name: 'arrivee_trajet', methods: ['POST'])]
+    public function arrivee(
+        int $id,
+        TrajetRepository $repo,
+        EntityManagerInterface $entityManager
+    ): JsonResponse {
+        /** @var Utilisateur|null $utilisateur */
+        $utilisateur = $this->getUser();
+        if (!$utilisateur instanceof Utilisateur) {
+            return $this->json(['message' => self::MESSAGE_NON_AUTHENTIFIE], 401);
+        }
+
+        $trajet = $repo->find($id);
+        if (!$trajet instanceof Trajet) {
+            return $this->json(['message' => 'Trajet introuvable.'], 404);
+        }
+
+        if (!$this->peutPiloterTrajet($utilisateur, $trajet)) {
+            return $this->json(['message' => 'Seul le conducteur peut finaliser ce trajet.'], 403);
+        }
+
+        if ($trajet->getStatut() !== 'en_cours') {
+            return $this->json(['message' => 'Le trajet doit etre en cours pour etre termine.'], 400);
+        }
+
+        $trajet->setStatut('termine');
+        $entityManager->flush();
+
+        return $this->json([
+            'message' => 'Trajet termine avec succes.',
+            'statut' => $trajet->getStatut(),
+        ]);
+    }
+
     private function utilisateurPeutCreerTrajet(Utilisateur $utilisateur): bool
     {
         $type = $utilisateur->getTypeUtilisateur();
@@ -268,6 +349,12 @@ class TrajetController extends AbstractController
             return true;
         }
 
+        $conducteur = $trajet->getConducteur();
+        return $conducteur instanceof Utilisateur && $conducteur->getId() === $utilisateur->getId();
+    }
+
+    private function peutPiloterTrajet(Utilisateur $utilisateur, Trajet $trajet): bool
+    {
         $conducteur = $trajet->getConducteur();
         return $conducteur instanceof Utilisateur && $conducteur->getId() === $utilisateur->getId();
     }
@@ -355,6 +442,7 @@ class TrajetController extends AbstractController
             ->setPrix($data['prix'])
             ->setPlacesLibres($data['placesLibres'])
             ->setEco($data['eco'])
+            ->setStatut('planifie')
             ->setConducteur($utilisateur)
             ->setVehiculeRef($vehicule)
             ->setDriverName($utilisateur->getPseudo())

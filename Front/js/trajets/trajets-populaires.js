@@ -4,8 +4,7 @@ function initTrajetsPopulaires() {
     chargerTrajetsPopulaires(trajetsDiv, 3);
 }
 
-const PHOTO_CONDUCTEUR_PAR_DEFAUT = "/EcoRide/Front/images/environnement.jpg";
-const PHOTO_VEHICULE_PAR_DEFAUT = "/EcoRide/Front/images/covoiturage.jpg";
+const URL_DETAIL_COVOITURAGE = `${window.location.origin}/EcoRide/Front/covoiturage-detail`;
 
 async function chargerTrajetsPopulaires(div, max = 4) {
     div.innerHTML = "<div class='text-center text-muted'>Chargement…</div>";
@@ -23,8 +22,8 @@ async function chargerTrajetsPopulaires(div, max = 4) {
                 <div class="card shadow-sm h-100">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
-                            <img src="${t.driverPhoto || PHOTO_CONDUCTEUR_PAR_DEFAUT}" alt="Conducteur" class="rounded-circle me-3 object-fit-cover" width="50" height="50" onerror="this.onerror=null;this.src='${PHOTO_CONDUCTEUR_PAR_DEFAUT}'">
-                            <img src="${t.carPhoto || PHOTO_VEHICULE_PAR_DEFAUT}" alt="Véhicule" class="rounded me-3 object-fit-cover" width="50" height="50" onerror="this.onerror=null;this.src='${PHOTO_VEHICULE_PAR_DEFAUT}'">
+                            ${t.driverPhoto ? `<img src="${t.driverPhoto}" alt="Conducteur" class="rounded-circle me-3 object-fit-cover" width="50" height="50">` : ""}
+                            ${t.carPhoto ? `<img src="${t.carPhoto}" alt="Véhicule" class="rounded me-3 object-fit-cover" width="50" height="50">` : ""}
                             <div>
                                 <h6 class="mb-0">${t.driverName || "Conducteur"}</h6>
                                 <small class="text-success">${t.vehicle || "Véhicule"} • ${t.placesLibres} places libres</small>
@@ -33,7 +32,7 @@ async function chargerTrajetsPopulaires(div, max = 4) {
                         <p class="mb-1">${t.depart} → ${t.destination} ${t.eco ? '<span class="badge bg-success">Écologique</span>' : '<span class="badge bg-secondary">Classique</span>'}</p>
                         <p class="mb-1">${formatTrajetDates(t.departAt, t.arriveeAt)}</p>
                         <p class="mb-2"><strong>${t.prix} €</strong></p>
-                        <a href="/EcoRide/Front/covoiturage-detail?id=${t.id}" class="btn btn-outline-success btn-sm">Détails</a>
+                        <a href="${URL_DETAIL_COVOITURAGE}?id=${encodeURIComponent(t.id)}" class="btn btn-outline-success btn-sm">Détails</a>
                         ${construireActionsAdmin(t)}
                     </div>
                 </div>
@@ -64,7 +63,6 @@ function construireActionsAdmin(trajet) {
     return `
         <div class="d-flex gap-2 mt-2">
             <button type="button" class="btn btn-sm btn-outline-secondary" data-admin-modifier-trajet="${trajet.id}">Modifier</button>
-            <button type="button" class="btn btn-sm btn-outline-danger" data-admin-supprimer-trajet="${trajet.id}">Supprimer</button>
         </div>
     `;
 }
@@ -73,17 +71,6 @@ function activerActionsAdmin(conteneur) {
     if (!estAdminConnecte()) {
         return;
     }
-
-    conteneur.querySelectorAll("[data-admin-supprimer-trajet]").forEach((bouton) => {
-        bouton.addEventListener("click", async () => {
-            const idTrajet = bouton.getAttribute("data-admin-supprimer-trajet");
-            if (!idTrajet || !confirm("Supprimer ce trajet ?")) {
-                return;
-            }
-            await supprimerTrajetAdmin(idTrajet);
-            initTrajetsPopulaires();
-        });
-    });
 
     conteneur.querySelectorAll("[data-admin-modifier-trajet]").forEach((bouton) => {
         bouton.addEventListener("click", async () => {
@@ -103,26 +90,6 @@ function activerActionsAdmin(conteneur) {
             initTrajetsPopulaires();
         });
     });
-}
-
-async function supprimerTrajetAdmin(idTrajet) {
-    const token = typeof window.getToken === "function" ? window.getToken() : null;
-    if (!token) {
-        alert("Connexion admin requise.");
-        return;
-    }
-
-    const reponse = await fetch(`http://localhost:8000/api/trajet/${idTrajet}`, {
-        method: "DELETE",
-        headers: {
-            "X-AUTH-TOKEN": token,
-        },
-    });
-
-    if (!reponse.ok) {
-        const resultat = await reponse.json().catch(() => ({}));
-        throw new Error(resultat.message || "Suppression impossible.");
-    }
 }
 
 async function modifierTrajetAdmin(idTrajet, prix, placesLibres) {

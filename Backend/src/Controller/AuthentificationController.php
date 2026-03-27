@@ -2,7 +2,11 @@
 
 namespace App\Controller;
 
+use App\Entity\Participation;
+use App\Entity\Trajet;
 use App\Entity\Utilisateur;
+use App\Repository\ParticipationRepository;
+use App\Repository\TrajetRepository;
 use App\Repository\UtilisateurRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -132,6 +136,213 @@ class AuthentificationController extends AbstractController
             'photoProfil' => $utilisateur->getPhotoProfil(),
             'preferences' => $preferences,
         ];
+    }
+
+    #[Route('/utilisateur/historique', name: 'api_historique_get', methods: ['GET'])]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    public function getHistorique(
+        #[CurrentUser] ?Utilisateur $utilisateur,
+        ParticipationRepository $participationRepository,
+        TrajetRepository $trajetRepository,
+        Request $request,
+        UtilisateurRepository $utilisateurRepository
+    ): JsonResponse {
+        $status = mb_strtolower(trim((string) $request->query->get('status', 'all')));
+        if (!in_array($status, ['all', 'coming', 'past'], true)) {
+            return $this->json(['message' => 'Filtre status invalide.'], 400);
+        }
+
+        $cibleHistorique = $utilisateur;
+        $requestedUserId = (int) $request->query->get('userId', 0);
+        if ($requestedUserId > 0 && in_array('ROLE_ADMIN', $utilisateur->getRoles(), true)) {
+            $cible = $utilisateurRepository->find($requestedUserId);
+            if ($cible instanceof Utilisateur) {
+                $cibleHistorique = $cible;
+            }
+        }
+
+        $maintenant = new \DateTimeImmutable();
+
+        $participations = $participationRepository->findParticipationsUtilisateur($cibleHistorique);
+        $historiqueParticipation = array_map(
+            static function (Participation $participation) use ($maintenant): array {
+                $trajet = $participation->getTrajet();
+                if (!$trajet instanceof Trajet) {
+                    return [];
+                }
+
+                $departAt = $trajet->getDepartAt();
+                $limiteAnnulation = $departAt instanceof \DateTimeImmutable ? $departAt->modify('-2 hours') : null;
+                $peutAnnuler = $limiteAnnulation instanceof \DateTimeImmutable && $maintenant < $limiteAnnulation;
+                $estAVenir = $departAt instanceof \DateTimeImmutable && $departAt > $maintenant;
+
+                return [
+                    'participationId' => $participation->getId(),
+                    'joinedAt' => $participation->getCreatedAt()?->format(DATE_ATOM),
+                    'creditsUtilises' => $participation->getCreditsUtilises(),
+                    'canCancel' => $peutAnnuler,
+                    'isUpcoming' => $estAVenir,
+                    'trajet' => [
+                        'id' => $trajet->getId(),
+                        'depart' => $trajet->getDepart(),
+                        'destination' => $trajet->getDestination(),
+                        'departAt' => $trajet->getDepartAt()?->format(DATE_ATOM),
+                        'arriveeAt' => $trajet->getArriveeAt()?->format(DATE_ATOM),
+                        'prix' => $trajet->getPrix(),
+                        'driverName' => $trajet->getDriverName(),
+                        'driverPhoto' => $trajet->getDriverPhoto(),
+                        'carPhoto' => $trajet->getCarPhoto(),
+                        'vehicle' => $trajet->getVehicle(),
+                    ],
+                ];
+            },
+            $participations
+        );
+
+        $historiqueParticipation = array_values(array_filter($historiqueParticipation));
+        $historiqueParticipation = $this->filtrerHistoriqueParStatus($historiqueParticipation, $status);
+
+        $trajetsConducteur = $trajetRepository->findBy(['conducteur' => $cibleHistorique], ['departAt' => 'DESC']);
+        $historiqueConducteur = array_map(
+            static function (Trajet $trajet) use ($maintenant, $participationRepository): array {
+                $departAt = $trajet->getDepartAt();
+                $peutAnnuler = $departAt instanceof \DateTimeImmutable && $departAt > $maintenant;
+                $estAVenir = $departAt instanceof \DateTimeImmutable && $departAt > $maintenant;
+
+                return [
+                    'trajetId' => $trajet->getId(),
+                    'depart' => $trajet->getDepart(),
+                    'destination' => $trajet->getDestination(),
+                    'departAt' => $trajet->getDepartAt()?->format(DATE_ATOM),
+                    'arriveeAt' => $trajet->getArriveeAt()?->format(DATE_ATOM),
+                    'prix' => $trajet->getPrix(),
+                    'placesLibres' => $trajet->getPlacesLibres(),
+                    'participants' => $participationRepository->countByTrajet($trajet),
+                    'canCancel' => $peutAnnuler,
+                    'isUpcoming' => $estAVenir,
+                ];
+            },
+            $trajetsConducteur
+        );
+        $historiqueConducteur = $this->filtrerHistoriqueParStatus($historiqueConducteur, $status);
+
+        return $this->json([
+            'status' => $status,
+            'userId' => $cibleHistorique->getId(),
+            'participations' => $historiqueParticipation,
+            'trajetsConducteur' => $historiqueConducteur,
+        ]);
+    }
+
+    #[Route('/utilisateur/historique/participation/{id}', name: 'api_historique_annuler_participation', methods: ['DELETE'])]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    public function annulerParticipation(
+        int $id,
+        #[CurrentUser] ?Utilisateur $utilisateur,
+        ParticipationRepository $participationRepository,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        $participation = $participationRepository->find($id);
+        if (!$participation instanceof Participation) {
+            return $this->json(['message' => 'Participation introuvable.'], 404);
+        }
+
+        $proprietaire = $participation->getUtilisateur();
+        $estProprietaire = $proprietaire instanceof Utilisateur && $proprietaire->getId() === $utilisateur->getId();
+        if (!$estProprietaire) {
+            return $this->json(['message' => 'Acces refuse.'], 403);
+        }
+
+        $trajet = $participation->getTrajet();
+        if (!$trajet instanceof Trajet) {
+            return $this->json(['message' => 'Trajet introuvable.'], 404);
+        }
+
+        $departAt = $trajet->getDepartAt();
+        $maintenant = new \DateTimeImmutable();
+        $limiteParticipant = $departAt instanceof \DateTimeImmutable ? $departAt->modify('-2 hours') : null;
+        if ($limiteParticipant instanceof \DateTimeImmutable && $maintenant >= $limiteParticipant) {
+            return $this->json(['message' => 'Annulation impossible moins de 2 heures avant le depart.'], 400);
+        }
+
+        if ($proprietaire instanceof Utilisateur) {
+            $proprietaire->setCredits($proprietaire->getCredits() + $participation->getCreditsUtilises());
+        }
+        $trajet->setPlacesLibres($trajet->getPlacesLibres() + 1);
+
+        $em->remove($participation);
+        $em->flush();
+
+        return $this->json([
+            'message' => 'Participation annulee avec remboursement.',
+            'creditsRestants' => $proprietaire instanceof Utilisateur ? $proprietaire->getCredits() : null,
+            'placesLibres' => $trajet->getPlacesLibres(),
+        ]);
+    }
+
+    #[Route('/utilisateur/historique/trajet/{id}', name: 'api_historique_annuler_trajet', methods: ['DELETE'])]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    public function annulerTrajetConducteur(
+        int $id,
+        #[CurrentUser] ?Utilisateur $utilisateur,
+        TrajetRepository $trajetRepository,
+        ParticipationRepository $participationRepository,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        $trajet = $trajetRepository->find($id);
+        if (!$trajet instanceof Trajet) {
+            return $this->json(['message' => 'Trajet introuvable.'], 404);
+        }
+
+        $conducteur = $trajet->getConducteur();
+        $estConducteur = $conducteur instanceof Utilisateur && $conducteur->getId() === $utilisateur->getId();
+        if (!$estConducteur) {
+            return $this->json(['message' => 'Acces refuse.'], 403);
+        }
+
+        $departAt = $trajet->getDepartAt();
+        if ($departAt instanceof \DateTimeImmutable && $departAt <= new \DateTimeImmutable()) {
+            return $this->json(['message' => 'Annulation impossible apres le depart.'], 400);
+        }
+
+        $participations = $participationRepository->findByTrajet($trajet);
+        $nbRembourses = 0;
+        foreach ($participations as $participation) {
+            $participant = $participation->getUtilisateur();
+            if ($participant instanceof Utilisateur) {
+                $participant->setCredits($participant->getCredits() + $participation->getCreditsUtilises());
+            }
+            $em->remove($participation);
+            $nbRembourses++;
+        }
+
+        $em->remove($trajet);
+        $em->flush();
+
+        return $this->json([
+            'message' => 'Trajet annule avec remboursement des participants.',
+            'participantsRembourses' => $nbRembourses,
+        ]);
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $items
+     * @return array<int, array<string, mixed>>
+     */
+    private function filtrerHistoriqueParStatus(array $items, string $status): array
+    {
+        if ($status === 'all') {
+            return $items;
+        }
+
+        return array_values(array_filter($items, static function (array $item) use ($status): bool {
+            $isUpcoming = (bool) ($item['isUpcoming'] ?? false);
+            if ($status === 'coming') {
+                return $isUpcoming;
+            }
+
+            return !$isUpcoming;
+        }));
     }
 
     #[Route('/utilisateur/profil', name: 'api_profil_put', methods: ['PUT'])]

@@ -1,0 +1,58 @@
+Plan EcoRide (maj 27.03.2026)
+
+Fait
+- US1: Accueil (hero, recherche, FAQ, newsletter) OK
+- US2: Navigation SPA OK
+- US3: Recherche covoiturages OK
+- US5: Detail covoiturage + avis lies au trajet OK
+- US6: Participer (Participation entity, credits, places) OK
+- US7: Inscription/connexion OK
+- US8: Espace utilisateur (profil, preferences, vehicules + photos) OK
+- US9: Creation trajet (regles chauffeur/les_deux + admin) OK
+- US10: Historique + annulation (base) OK
+- US11: Base statut trajet (planifie/en_cours/termine) + actions demarrer/arrivee OK (base)
+- Admin trajets: boutons modifier sur pages principales OK
+
+Fait dans ce bloc
+- US10 etendu:
+	- GET /api/utilisateur/historique?status=all|coming|past
+	- support admin: filtre userId
+	- regles annulation par role:
+		- participant: annulation jusqu'a 2h avant depart
+		- conducteur: annulation jusqu'au depart
+		- admin: pas de bouton annulation trajet/participation (politique actuelle)
+- Correction navigation detail:
+	- Accueil -> Detail utilise maintenant le meme chemin que la page covoiturages
+	- scripts home charges avec cache busting pour eviter ancien JS en cache
+- Photos:
+	- suppression des images statiques de secours (driver/car) dans les vues principales
+- Admin CRUD centralise (nouveau):
+	- API /api/admin/users (GET/POST/PUT/DELETE)
+	- API /api/admin/vehicules (GET/POST/PUT/DELETE)
+	- API /api/admin/trajets (GET/PUT)
+	- API /api/admin/avis (GET/PUT/DELETE)
+	- API /api/admin/participations (GET)
+- Front admin:
+	- route /EcoRide/Front/admin-dashboard
+	- page dashboard admin avec actions CRUD sur les domaines ci-dessus
+
+Reste a faire
+- US4: Filtres backend complets (note/duree fiables)
+- US11: Completer les regles metier post-arrivee (avis passagers, transitions verrouillees)
+- US12: Finaliser dashboard employe (auth header + role checks)
+- US13: Stats admin + suspension comptes + creation employe guidee
+- Contact page + mentions legales finales
+- Tests fonctionnels complets frontend/backend
+
+Ordre propose (suite)
+1. Stabilisation bloc admin (tests manuels + corrections UX)
+2. US11 complet (avis passagers apres arrivee + regles finales)
+3. US13 stats/suspension final
+4. Finitions et recette complete
+
+Regle suivi
+- Mettre a jour ce fichier Plan.txt a chaque etape terminee.
+
+Rappels workflow
+- Messages de commit: francais simple
+- Push apres validation utilisateur

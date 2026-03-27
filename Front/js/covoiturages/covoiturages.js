@@ -1,7 +1,5 @@
-console.log("js funktioniert");
 let lastResults = [];
-const PHOTO_CONDUCTEUR_PAR_DEFAUT = "/EcoRide/Front/images/environnement.jpg";
-const PHOTO_VEHICULE_PAR_DEFAUT = "/EcoRide/Front/images/covoiturage.jpg";
+const URL_DETAIL_COVOITURAGE = `${window.location.origin}/EcoRide/Front/covoiturage-detail`;
 
 function initCovoiturageSearch() {
     const searchForm = document.getElementById("search-itineraries");
@@ -102,8 +100,8 @@ function renderItineraries(trajets) {
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
-                        <img src="${t.driverPhoto || PHOTO_CONDUCTEUR_PAR_DEFAUT}" alt="Photo du chauffeur" class="rounded-circle me-3 object-fit-cover" width="50" height="50" onerror="this.onerror=null;this.src='${PHOTO_CONDUCTEUR_PAR_DEFAUT}'">
-                        <img src="${t.carPhoto || PHOTO_VEHICULE_PAR_DEFAUT}" alt="Photo de la voiture" class="rounded me-3 object-fit-cover" width="50" height="50" onerror="this.onerror=null;this.src='${PHOTO_VEHICULE_PAR_DEFAUT}'">
+                        ${t.driverPhoto ? `<img src="${t.driverPhoto}" alt="Photo du chauffeur" class="rounded-circle me-3 object-fit-cover" width="50" height="50">` : ""}
+                        ${t.carPhoto ? `<img src="${t.carPhoto}" alt="Photo de la voiture" class="rounded me-3 object-fit-cover" width="50" height="50">` : ""}
                         <div>
                             <h5 class="card-title mb-0">${t.driverName || "Chauffeur"}</h5>
                             <small class="text-muted">Note : ${(t.rating ?? "5")}/5</small>
@@ -115,7 +113,7 @@ function renderItineraries(trajets) {
                     <p class="card-text">Places restantes : <strong>${t.placesLibres}</strong></p>
                     <p class="card-text">Prix : <strong>${t.prix}€</strong></p>
                     <p class="card-text">Type de trajet : <strong>${t.eco ? "Écologique" : "Classique"}</strong></p>
-                    <a href="/EcoRide/Front/covoiturage-detail?id=${t.id}" class="btn btn-success">Détail</a>
+                    <a href="${URL_DETAIL_COVOITURAGE}?id=${encodeURIComponent(t.id)}" class="btn btn-success">Détail</a>
                     ${construireActionsAdminCovoiturage(t)}
                 </div>
             </div>
@@ -145,7 +143,6 @@ function construireActionsAdminCovoiturage(trajet) {
     return `
         <div class="d-flex gap-2 mt-2">
             <button type="button" class="btn btn-sm btn-outline-secondary" data-admin-modifier-trajet-covoiturage="${trajet.id}">Modifier</button>
-            <button type="button" class="btn btn-sm btn-outline-danger" data-admin-supprimer-trajet-covoiturage="${trajet.id}">Supprimer</button>
         </div>
     `;
 }
@@ -154,18 +151,6 @@ function activerActionsAdminCovoiturage(conteneur) {
     if (!estAdminConnecteCovoiturage()) {
         return;
     }
-
-    conteneur.querySelectorAll("[data-admin-supprimer-trajet-covoiturage]").forEach((bouton) => {
-        bouton.addEventListener("click", async () => {
-            const idTrajet = bouton.getAttribute("data-admin-supprimer-trajet-covoiturage");
-            if (!idTrajet || !confirm("Supprimer ce trajet ?")) {
-                return;
-            }
-            await supprimerTrajetAdminCovoiturage(idTrajet);
-            const formulaireRecherche = document.getElementById("search-itineraries");
-            formulaireRecherche?.requestSubmit();
-        });
-    });
 
     conteneur.querySelectorAll("[data-admin-modifier-trajet-covoiturage]").forEach((bouton) => {
         bouton.addEventListener("click", async () => {
@@ -186,25 +171,6 @@ function activerActionsAdminCovoiturage(conteneur) {
             formulaireRecherche?.requestSubmit();
         });
     });
-}
-
-async function supprimerTrajetAdminCovoiturage(idTrajet) {
-    const token = typeof window.getToken === "function" ? window.getToken() : null;
-    if (!token) {
-        alert("Connexion admin requise.");
-        return;
-    }
-
-    const reponse = await fetch(`http://localhost:8000/api/trajet/${idTrajet}`, {
-        method: "DELETE",
-        headers: {
-            "X-AUTH-TOKEN": token,
-        },
-    });
-    if (!reponse.ok) {
-        const resultat = await reponse.json().catch(() => ({}));
-        throw new Error(resultat.message || "Suppression impossible.");
-    }
 }
 
 async function modifierTrajetAdminCovoiturage(idTrajet, prix, placesLibres) {

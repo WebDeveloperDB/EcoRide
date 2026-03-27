@@ -1,9 +1,12 @@
 function loadScript(src) {
-    if (document.querySelector(`script[src="${src}"]`)) {
-        return;
-    }
+    document.querySelectorAll(`script[data-home-dynamic-script="${src}"]`).forEach((script) => {
+        script.remove();
+    });
+
     const script = document.createElement("script");
-    script.src = src;
+    const separator = src.includes("?") ? "&" : "?";
+    script.src = `${src}${separator}v=${Date.now()}`;
+    script.dataset.homeDynamicScript = src;
     document.body.appendChild(script);
 }
 
