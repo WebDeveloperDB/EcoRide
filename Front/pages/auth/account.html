@@ -27,8 +27,9 @@
             </select>
         </div>
         <div class="mb-3">
-            <label for="PhotoProfilInput" class="form-label">Photo du conducteur (URL)</label>
-            <input type="url" class="form-control" id="PhotoProfilInput" placeholder="https://...">
+            <label for="PhotoProfilInput" class="form-label">Photo du conducteur (fichier)</label>
+            <input type="file" accept="image/*" class="form-control" id="PhotoProfilInput">
+            <div id="PhotoProfilApercu" class="pt-2"></div>
         </div>
         <div class="form-check mb-2">
             <input class="form-check-input" type="checkbox" id="PreferenceAnimaux">
@@ -74,8 +75,8 @@
                 <input type="text" class="form-control" id="VehiculeEnergieInput" placeholder="Essence, Diesel, Electrique...">
             </div>
             <div class="col-12">
-                <label for="VehiculePhotoInput" class="form-label">Photo du véhicule (URL)</label>
-                <input type="url" class="form-control" id="VehiculePhotoInput" placeholder="https://...">
+                <label for="VehiculePhotoInput" class="form-label">Photo du véhicule (fichier)</label>
+                <input type="file" accept="image/*" class="form-control" id="VehiculePhotoInput">
             </div>
         </div>
         <div class="text-center mt-3">

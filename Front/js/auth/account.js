@@ -10,6 +10,7 @@
     const champCredits = document.getElementById("CreditsInput");
     const champTypeUtilisateur = document.getElementById("TypeUtilisateurInput");
     const champPhotoProfil = document.getElementById("PhotoProfilInput");
+    const zonePhotoProfilApercu = document.getElementById("PhotoProfilApercu");
     const preferenceAnimaux = document.getElementById("PreferenceAnimaux");
     const preferenceFumeur = document.getElementById("PreferenceFumeur");
     const preferenceMusique = document.getElementById("PreferenceMusique");
@@ -67,6 +68,12 @@
             }
 
             afficherMessage("Profil mis a jour avec succes.", "text-success", 7000);
+
+            if (champPhotoProfil && champPhotoProfil.files && champPhotoProfil.files.length > 0) {
+                await envoyerPhotoProfil(champPhotoProfil.files[0]);
+                champPhotoProfil.value = "";
+            }
+
             await chargerProfil(true);
 
             if (window.synchroniserTypeUtilisateur) {
@@ -88,20 +95,22 @@
             }
 
             try {
+                const formulaireDonnees = new FormData();
+                formulaireDonnees.append("marque", champVehiculeMarque.value.trim());
+                formulaireDonnees.append("modele", champVehiculeModele.value.trim());
+                formulaireDonnees.append("places", String(Number.parseInt(champVehiculePlaces.value, 10)));
+                formulaireDonnees.append("couleur", champVehiculeCouleur.value.trim());
+                formulaireDonnees.append("energie", champVehiculeEnergie.value.trim());
+                if (champVehiculePhoto && champVehiculePhoto.files && champVehiculePhoto.files.length > 0) {
+                    formulaireDonnees.append("photoVehicule", champVehiculePhoto.files[0]);
+                }
+
                 const response = await fetch("http://localhost:8000/api/vehicule", {
                     method: "POST",
                     headers: {
-                        "Content-Type": "application/json",
                         "X-AUTH-TOKEN": token,
                     },
-                    body: JSON.stringify({
-                        marque: champVehiculeMarque.value.trim(),
-                        modele: champVehiculeModele.value.trim(),
-                        places: Number.parseInt(champVehiculePlaces.value, 10),
-                        couleur: champVehiculeCouleur.value.trim(),
-                        energie: champVehiculeEnergie.value.trim(),
-                        photoVehicule: champVehiculePhoto.value.trim(),
-                    }),
+                    body: formulaireDonnees,
                 });
 
                 const resultat = await response.json().catch(() => ({}));
@@ -142,7 +151,7 @@
             champEmail.value = profil.email || "";
             champCredits.value = String(profil.credits ?? "");
             champTypeUtilisateur.value = profil.typeUtilisateur || "";
-            champPhotoProfil.value = profil.photoProfil || "";
+            mettreApercuPhotoProfil(profil.photoProfil || "");
             localStorage.setItem("typeUtilisateur", profil.typeUtilisateur || "");
 
             if (window.showAndHideElementsForRoles) {
@@ -160,6 +169,44 @@
         } catch (error) {
             afficherMessage("Erreur: " + error.message, "text-danger", 9000);
         }
+    }
+
+    async function envoyerPhotoProfil(fichierPhoto) {
+        const token = window.getToken ? window.getToken() : null;
+        if (!token) {
+            return;
+        }
+
+        const formulaireDonnees = new FormData();
+        formulaireDonnees.append("photo", fichierPhoto);
+
+        const reponse = await fetch("http://localhost:8000/api/utilisateur/photo-profil", {
+            method: "POST",
+            headers: {
+                "X-AUTH-TOKEN": token,
+            },
+            body: formulaireDonnees,
+        });
+
+        const resultat = await reponse.json().catch(() => ({}));
+        if (!reponse.ok) {
+            throw new Error(resultat.message || "Photo de profil impossible a envoyer.");
+        }
+
+        mettreApercuPhotoProfil(resultat.photoProfil || "");
+    }
+
+    function mettreApercuPhotoProfil(urlPhoto) {
+        if (!zonePhotoProfilApercu) {
+            return;
+        }
+
+        if (!urlPhoto) {
+            zonePhotoProfilApercu.innerHTML = "";
+            return;
+        }
+
+        zonePhotoProfilApercu.innerHTML = `<img src="${urlPhoto}" alt="Photo profil" class="rounded-circle object-fit-cover" width="72" height="72">`;
     }
 
     async function chargerVehicules() {

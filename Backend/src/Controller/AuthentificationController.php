@@ -6,6 +6,7 @@ use App\Entity\Utilisateur;
 use App\Repository\UtilisateurRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -160,6 +161,53 @@ class AuthentificationController extends AbstractController
             'message' => 'Profil mis à jour.',
             'profil' => $this->construireProfil($utilisateur),
         ]);
+    }
+
+    #[Route('/utilisateur/photo-profil', name: 'api_profil_photo_post', methods: ['POST'])]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    public function uploadPhotoProfil(
+        Request $requete,
+        #[CurrentUser] ?Utilisateur $utilisateur,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        $fichier = $requete->files->get('photo');
+        if (!$fichier instanceof UploadedFile) {
+            return $this->json(['message' => 'Fichier photo manquant.'], 400);
+        }
+
+        $urlPhoto = $this->enregistrerPhoto($fichier, 'profils', $requete);
+        if ($urlPhoto === null) {
+            return $this->json(['message' => 'Format photo invalide.'], 400);
+        }
+
+        $utilisateur->setPhotoProfil($urlPhoto);
+        $em->flush();
+
+        return $this->json([
+            'message' => 'Photo de profil mise a jour.',
+            'photoProfil' => $urlPhoto,
+        ]);
+    }
+
+    private function enregistrerPhoto(UploadedFile $fichier, string $dossier, Request $requete): ?string
+    {
+        $extensionsAutorisees = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+        $extension = mb_strtolower((string) $fichier->guessExtension());
+
+        if (!in_array($extension, $extensionsAutorisees, true)) {
+            return null;
+        }
+
+        $nomFichier = uniqid('photo_', true) . '.' . $extension;
+        $dossierPublic = $this->getParameter('kernel.project_dir') . '/public/uploads/' . $dossier;
+
+        if (!is_dir($dossierPublic)) {
+            mkdir($dossierPublic, 0775, true);
+        }
+
+        $fichier->move($dossierPublic, $nomFichier);
+
+        return $requete->getSchemeAndHttpHost() . '/uploads/' . $dossier . '/' . $nomFichier;
     }
 
     private function appliquerPseudo(array $donnees, Utilisateur $utilisateur): ?string
