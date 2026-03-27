@@ -33,7 +33,7 @@ async function chargerTrajetsPopulaires(div, max = 4) {
                         <p class="mb-1">${t.depart} → ${t.destination} ${t.eco ? '<span class="badge bg-success">Écologique</span>' : '<span class="badge bg-secondary">Classique</span>'}</p>
                         <p class="mb-1">${formatTrajetDates(t.departAt, t.arriveeAt)}</p>
                         <p class="mb-2"><strong>${t.prix} €</strong></p>
-                        <a href="/EcoRide/Front/covoiturage" class="btn btn-outline-success btn-sm">Détails</a>
+                        <a href="/EcoRide/Front/covoiturage-detail?id=${t.id}" class="btn btn-outline-success btn-sm">Détails</a>
                     </div>
                 </div>
             </div>

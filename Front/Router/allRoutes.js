@@ -4,6 +4,7 @@ import Route from "./Route.js";
 export const allRoutes = [
     new Route("/EcoRide/Front/", "Accueil", "/EcoRide/Front/pages/home.html", [], "/EcoRide/Front/js/home.js"),
     new Route("/EcoRide/Front/covoiturage", "Covoiturage", "/EcoRide/Front/pages/covoiturages/covoiturage.html", [], "/EcoRide/Front/js/covoiturages/covoiturages.js"),
+    new Route("/EcoRide/Front/covoiturage-detail", "Detail covoiturage", "/EcoRide/Front/pages/covoiturages/detail.html", [], "/EcoRide/Front/js/covoiturages/detail-covoiturage.js"),
     new Route("/EcoRide/Front/signin", "Connexion", "/EcoRide/Front/pages/auth/signin.html", ["disconnected"], "/EcoRide/Front/js/auth/signin.js"),
     new Route("/EcoRide/Front/signup", "Inscription", "/EcoRide/Front/pages/auth/signup.html", ["disconnected"], "/EcoRide/Front/js/auth/signup.js"),
     new Route("/EcoRide/Front/account", "Mon compte", "/EcoRide/Front/pages/auth/account.html", ["ROLE_USER"], "/EcoRide/Front/js/auth/account.js"),

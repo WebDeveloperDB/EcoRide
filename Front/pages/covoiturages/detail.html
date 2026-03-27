@@ -1,0 +1,51 @@
+<div class="hero-scene text-center text-white">
+    <div class="hero-scene-content">
+        <h1>Détail du covoiturage</h1>
+    </div>
+</div>
+
+<div class="container">
+    <div id="detailTrajetChargement" class="text-center text-muted py-3">Chargement du trajet...</div>
+
+    <div id="detailTrajetBloc" class="d-none">
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3 gap-3 flex-wrap">
+                    <img id="detailPhotoConducteur" class="rounded-circle object-fit-cover" width="72" height="72" alt="Conducteur">
+                    <img id="detailPhotoVehicule" class="rounded object-fit-cover" width="96" height="72" alt="Véhicule">
+                    <div>
+                        <h3 id="detailNomConducteur" class="h5 mb-1"></h3>
+                        <p id="detailVehicule" class="mb-0 text-muted"></p>
+                    </div>
+                </div>
+
+                <p class="mb-1"><strong>Trajet:</strong> <span id="detailTrajet"></span></p>
+                <p class="mb-1"><strong>Date:</strong> <span id="detailDate"></span></p>
+                <p class="mb-1"><strong>Horaire:</strong> <span id="detailHeure"></span></p>
+                <p class="mb-1"><strong>Prix:</strong> <span id="detailPrix"></span></p>
+                <p class="mb-1"><strong>Places libres:</strong> <span id="detailPlaces"></span></p>
+                <p class="mb-0"><strong>Type:</strong> <span id="detailType"></span></p>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h2 class="h5">Préférences du conducteur</h2>
+                <ul id="detailPreferences" class="mb-0"></ul>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h2 class="h5">Avis du conducteur</h2>
+                <div id="detailAvis"></div>
+            </div>
+        </div>
+
+        <div class="text-center mb-4">
+            <button type="button" class="btn btn-success" id="btnParticiperDetail">Participer</button>
+        </div>
+    </div>
+
+    <div id="detailTrajetErreur" class="text-danger text-center d-none"></div>
+</div>

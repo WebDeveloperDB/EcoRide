@@ -115,7 +115,7 @@ function renderItineraries(trajets) {
                     <p class="card-text">Places restantes : <strong>${t.placesLibres}</strong></p>
                     <p class="card-text">Prix : <strong>${t.prix}€</strong></p>
                     <p class="card-text">Type de trajet : <strong>${t.eco ? "Écologique" : "Classique"}</strong></p>
-                    <a href="/EcoRide/Front/covoiturage" class="btn btn-success">Détail</a>
+                    <a href="/EcoRide/Front/covoiturage-detail?id=${t.id}" class="btn btn-success">Détail</a>
                 </div>
             </div>
         </div>

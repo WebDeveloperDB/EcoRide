@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Trajet;
 use App\Entity\Utilisateur;
+use App\Repository\AvisRepository;
 use App\Repository\VehiculeRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\TrajetRepository;
@@ -45,6 +46,49 @@ class TrajetController extends AbstractController
         $trajets = $repo->search($depart, $destination, $date);
 
         return $this->json($trajets, 200, [], ['groups' => 'trajet:read']);
+    }
+
+    #[Route('/{id}', name: 'detail_trajet', methods: ['GET'])]
+    public function detail(int $id, TrajetRepository $repo, AvisRepository $avisRepository): JsonResponse
+    {
+        $trajet = $repo->find($id);
+        if (!$trajet instanceof Trajet) {
+            return $this->json(['message' => 'Trajet introuvable.'], 404);
+        }
+
+        $preferencesConducteur = [];
+        $conducteur = $trajet->getConducteur();
+        if ($conducteur instanceof Utilisateur) {
+            $preferencesConducteur = $conducteur->getPreferences() ?? [];
+        }
+
+        $avis = $avisRepository->findBy([
+            'isValidated' => true,
+            'pseudo' => $trajet->getDriverName() ?? '',
+        ], ['createdAt' => 'DESC'], 10);
+
+        $avisFormat = array_map(static fn ($unAvis): array => [
+            'pseudo' => $unAvis->getPseudo(),
+            'commentaire' => $unAvis->getCommentaire(),
+            'createdAt' => $unAvis->getCreatedAt()?->format(DATE_ATOM),
+        ], $avis);
+
+        return $this->json([
+            'id' => $trajet->getId(),
+            'depart' => $trajet->getDepart(),
+            'destination' => $trajet->getDestination(),
+            'departAt' => $trajet->getDepartAt()?->format(DATE_ATOM),
+            'arriveeAt' => $trajet->getArriveeAt()?->format(DATE_ATOM),
+            'prix' => $trajet->getPrix(),
+            'eco' => $trajet->isEco(),
+            'driverName' => $trajet->getDriverName(),
+            'driverPhoto' => $trajet->getDriverPhoto(),
+            'carPhoto' => $trajet->getCarPhoto(),
+            'vehicle' => $trajet->getVehicle(),
+            'placesLibres' => $trajet->getPlacesLibres(),
+            'preferencesConducteur' => $preferencesConducteur,
+            'avisConducteur' => $avisFormat,
+        ]);
     }
 
     #[Route('', name: 'create_trajet', methods: ['POST'])]

@@ -33,6 +33,7 @@ security:
         - { path: ^/api/avis$, roles: PUBLIC_ACCESS, methods: [POST] }
         - { path: ^/api/trajet/populaires, roles: PUBLIC_ACCESS }
         - { path: ^/api/trajet/search, roles: PUBLIC_ACCESS }
+        - { path: ^/api/trajet/[0-9]+$, roles: PUBLIC_ACCESS, methods: [GET] }
 
 when@test:
     security:
