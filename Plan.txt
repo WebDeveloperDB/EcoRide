@@ -1,4 +1,4 @@
-Plan EcoRide (maj 27.03.2026)
+Plan EcoRide (maj 28.03.2026)
 
 Fait
 - US1: Accueil (hero, recherche, FAQ, newsletter) OK
@@ -51,6 +51,15 @@ Fait dans ce bloc
 	- creation employee guidee: POST /api/admin/employees
 	- login bloque pour comptes suspendus (login + token auth)
 	- dashboard admin: section statistiques + actions suspendre/reactiver + formulaire employee guide
+- Ajustements admin/accueil/avis (28.03):
+	- admin peut modifier + supprimer les trajets depuis Accueil, Covoiturages, Detail et Dashboard Admin
+	- admin peut suspendre/reactiver les vehicules depuis Dashboard Admin
+	- avis admin: validation sans commentaire obligatoire + edition commentaire separee
+	- Accueil: correction affichage bloc avis (avatar fallback, texte propre)
+	- Accueil: un seul hero image (suppression du double header)
+	- Accueil: style "Comment ca marche" modernise et images harmonisees
+	- Accueil: boutons admin pour changer les images hero + etapes via upload
+	- API media accueil: GET /api/home/media + POST /api/admin/home/media/{slot}
 
 Reste a faire
 - US4: Filtres backend complets (note/duree fiables)
