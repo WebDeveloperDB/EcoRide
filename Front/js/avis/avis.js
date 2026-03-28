@@ -44,21 +44,23 @@ async function chargerAvis(div, max = 4) {
         }
         // maximal anzeigen
         avis = avis.slice(0, max);
-        div.innerHTML = avis.map(a => `
+        div.innerHTML = avis.map(a => {
+            const pseudo = (a.pseudo || "Utilisateur").trim() || "Utilisateur";
+            const initiale = pseudo.charAt(0).toUpperCase();
+            return `
             <div class="col-md-4 mb-3">
-                <div class="card border-0 shadow h-100">
-                    <div class="card-body">
-                        <p class="fst-italic">« ${a.commentaire} »</p>
-                        <div class="d-flex align-items-center mt-3">
-                            <img src="/images/user-placeholder.jpg" alt="Utilisateur" class="rounded-circle me-3" width="42" height="42">
-                            <div>
-                                <span class="fw-bold">${a.pseudo}</span>
-                            </div>
+                <div class="card border-0 shadow h-100 testimonial-card">
+                    <div class="card-body d-flex flex-column">
+                        <p class="fst-italic mb-3 testimonial-comment">« ${a.commentaire || ""} »</p>
+                        <div class="d-flex align-items-center mt-auto gap-2">
+                            <span class="testimonial-avatar" aria-hidden="true">${initiale}</span>
+                            <span class="fw-bold">${pseudo}</span>
                         </div>
                     </div>
                 </div>
             </div>
-        `).join("");
+        `;
+        }).join("");
     } catch (e) {
         div.innerHTML = "<div class='text-danger'>Erreur lors de l'affichage des avis.</div>";
     }

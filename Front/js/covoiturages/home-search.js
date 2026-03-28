@@ -78,6 +78,7 @@ function construireActionsAdminAccueil(trajet) {
     return `
         <div class="d-flex gap-2 mt-2">
             <button type="button" class="btn btn-sm btn-outline-secondary" data-admin-modifier-trajet-accueil="${trajet.id}">Modifier</button>
+            <button type="button" class="btn btn-sm btn-outline-danger" data-admin-supprimer-trajet-accueil="${trajet.id}">Supprimer</button>
         </div>
     `;
 }
@@ -105,6 +106,20 @@ function activerActionsAdminAccueil(conteneur) {
             document.getElementById("search-form")?.requestSubmit();
         });
     });
+
+    conteneur.querySelectorAll("[data-admin-supprimer-trajet-accueil]").forEach((bouton) => {
+        bouton.addEventListener("click", async () => {
+            const idTrajet = bouton.getAttribute("data-admin-supprimer-trajet-accueil");
+            if (!idTrajet) {
+                return;
+            }
+            if (!window.confirm("Supprimer ce trajet ? Les participants seront rembourses.")) {
+                return;
+            }
+            await supprimerTrajetAdminAccueil(idTrajet);
+            document.getElementById("search-form")?.requestSubmit();
+        });
+    });
 }
 
 async function modifierTrajetAdminAccueil(idTrajet, prix, placesLibres) {
@@ -128,6 +143,26 @@ async function modifierTrajetAdminAccueil(idTrajet, prix, placesLibres) {
     if (!reponse.ok) {
         const resultat = await reponse.json().catch(() => ({}));
         throw new Error(resultat.message || "Modification impossible.");
+    }
+}
+
+async function supprimerTrajetAdminAccueil(idTrajet) {
+    const token = typeof window.getToken === "function" ? window.getToken() : null;
+    if (!token) {
+        alert("Connexion admin requise.");
+        return;
+    }
+
+    const reponse = await fetch(`http://localhost:8000/api/admin/trajets/${idTrajet}`, {
+        method: "DELETE",
+        headers: {
+            "X-AUTH-TOKEN": token,
+        },
+    });
+
+    if (!reponse.ok) {
+        const resultat = await reponse.json().catch(() => ({}));
+        throw new Error(resultat.message || "Suppression impossible.");
     }
 }
 

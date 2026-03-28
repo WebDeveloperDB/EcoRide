@@ -23948,19 +23948,79 @@ body {
   }
 }
 
-.bg-images {
-  position: relative; /* Ermöglicht eine bessere Steuerung der Platzierung */
-  width: 100%; /* Volle Breite */
-  height: 70vh; /* Festgelegte Höhe für den Header */
-  overflow: hidden; /* Überschüssiges Bild außerhalb des Containers ausblenden */
+.home-hero {
+  min-height: 420px;
+  overflow: hidden;
+  border-bottom-left-radius: 18px;
+  border-bottom-right-radius: 18px;
 }
 
-.bg-image {
-  width: 100%; /* Volle Breite */
-  height: 120%; /* Volle Höhe des Containers */
+.home-hero-image {
+  width: 100%;
+  height: 420px;
   -o-object-fit: cover;
      object-fit: cover;
-  background-position: top;
+  display: block;
+}
+
+.home-hero-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(120deg, rgba(20, 128, 85, 0.78) 0%, rgba(13, 148, 136, 0.62) 55%, rgba(15, 118, 110, 0.75) 100%);
+}
+
+.home-image-admin-btn {
+  position: absolute;
+  z-index: 3;
+  top: 14px;
+  right: 14px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+}
+
+.home-step-card {
+  background: linear-gradient(180deg, #ffffff 0%, #f2fbf7 100%);
+}
+
+.home-step-image {
+  width: 100%;
+  height: 210px;
+  -o-object-fit: cover;
+     object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid #e7f4ee;
+}
+
+.testimonial-card {
+  border-left: 4px solid #198754;
+  border-radius: 14px;
+}
+
+.testimonial-comment {
+  min-height: 78px;
+}
+
+.testimonial-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #198754;
+  color: #fff;
+  font-weight: 700;
+}
+
+@media (max-width: 767.98px) {
+  .home-hero,
+  .home-hero-image {
+    min-height: 340px;
+    height: 340px;
+  }
+  .home-step-image {
+    height: 180px;
+  }
 }
 
 main {

@@ -462,6 +462,10 @@ class TrajetController extends AbstractController
             return [['message' => 'Vehicule introuvable pour cet utilisateur.'], 404];
         }
 
+        if ($vehicule->isSuspended()) {
+            return [['message' => 'Ce vehicule est suspendu et ne peut pas etre utilise.'], 400];
+        }
+
         $trajet = (new Trajet())
             ->setDepart($data['depart'])
             ->setDestination($data['destination'])

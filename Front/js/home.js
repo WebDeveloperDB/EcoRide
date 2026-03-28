@@ -14,3 +14,4 @@ loadScript("/EcoRide/Front/js/avis/avis.js");
 loadScript("/EcoRide/Front/js/newsletter/newsletter.js");
 loadScript("/EcoRide/Front/js/trajets/trajets-populaires.js");
 loadScript("/EcoRide/Front/js/covoiturages/home-search.js");
+loadScript("/EcoRide/Front/js/admin/home-admin-media.js");

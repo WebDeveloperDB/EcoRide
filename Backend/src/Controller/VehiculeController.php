@@ -36,6 +36,7 @@ class VehiculeController extends AbstractController
             'energie' => $vehicule->getEnergie(),
             'photoVehicule' => $vehicule->getPhotoVehicule(),
             'places' => $vehicule->getPlaces(),
+            'isSuspended' => $vehicule->isSuspended(),
         ], $vehicules);
 
         return $this->json($data);

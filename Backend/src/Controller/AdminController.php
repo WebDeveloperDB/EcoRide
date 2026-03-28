@@ -45,6 +45,7 @@ class AdminController extends AbstractController
             'trajetsEnCours' => $trajetRepository->count(['statut' => 'en_cours']),
             'trajetsTermines' => $trajetRepository->count(['statut' => 'termine']),
             'vehiculesTotal' => $vehiculeRepository->count([]),
+            'vehiculesSuspended' => $vehiculeRepository->count(['isSuspended' => true]),
             'avisPending' => $avisRepository->count(['isValidated' => false]),
             'avisValidated' => $avisRepository->count(['isValidated' => true]),
             'participationsTotal' => $participationRepository->count([]),
@@ -312,6 +313,7 @@ class AdminController extends AbstractController
             'photoVehicule' => $vehicule->getPhotoVehicule(),
             'ownerId' => $vehicule->getUtilisateur()?->getId(),
             'ownerPseudo' => $vehicule->getUtilisateur()?->getPseudo(),
+            'isSuspended' => $vehicule->isSuspended(),
         ], $vehicules));
     }
 
@@ -352,6 +354,7 @@ class AdminController extends AbstractController
             ->setPlaces($places)
             ->setCouleur(trim((string) ($payload['couleur'] ?? '')) ?: null)
             ->setEnergie(trim((string) ($payload['energie'] ?? '')) ?: null)
+            ->setSuspended(false)
             ->setPhotoVehicule(trim((string) ($payload['photoVehicule'] ?? '')) ?: null);
 
         $entityManager->persist($vehicule);
@@ -396,6 +399,9 @@ class AdminController extends AbstractController
         if (array_key_exists('photoVehicule', $payload)) {
             $vehicule->setPhotoVehicule(trim((string) $payload['photoVehicule']) ?: null);
         }
+        if (array_key_exists('isSuspended', $payload)) {
+            $vehicule->setSuspended((bool) $payload['isSuspended']);
+        }
 
         $entityManager->flush();
 
@@ -419,6 +425,44 @@ class AdminController extends AbstractController
         $entityManager->flush();
 
         return $this->json(['message' => 'Vehicule supprime avec succes.']);
+    }
+
+    #[Route('/vehicules/{id}/suspend', name: 'admin_vehicules_suspend', methods: ['POST'])]
+    public function suspendVehicule(int $id, VehiculeRepository $vehiculeRepository, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $admin = $this->requireAdmin();
+        if ($admin instanceof JsonResponse) {
+            return $admin;
+        }
+
+        $vehicule = $vehiculeRepository->find($id);
+        if (!$vehicule instanceof Vehicule) {
+            return $this->json(['message' => 'Vehicule introuvable.'], 404);
+        }
+
+        $vehicule->setSuspended(true);
+        $entityManager->flush();
+
+        return $this->json(['message' => 'Vehicule suspendu avec succes.']);
+    }
+
+    #[Route('/vehicules/{id}/unsuspend', name: 'admin_vehicules_unsuspend', methods: ['POST'])]
+    public function unsuspendVehicule(int $id, VehiculeRepository $vehiculeRepository, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $admin = $this->requireAdmin();
+        if ($admin instanceof JsonResponse) {
+            return $admin;
+        }
+
+        $vehicule = $vehiculeRepository->find($id);
+        if (!$vehicule instanceof Vehicule) {
+            return $this->json(['message' => 'Vehicule introuvable.'], 404);
+        }
+
+        $vehicule->setSuspended(false);
+        $entityManager->flush();
+
+        return $this->json(['message' => 'Vehicule reactive avec succes.']);
     }
 
     #[Route('/trajets', name: 'admin_trajets_list', methods: ['GET'])]

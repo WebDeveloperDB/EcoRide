@@ -68,6 +68,7 @@
                 ["En cours", stats.trajetsEnCours],
                 ["Termines", stats.trajetsTermines],
                 ["Vehicules", stats.vehiculesTotal],
+                ["Vehicules suspendus", stats.vehiculesSuspended],
                 ["Avis en attente", stats.avisPending],
                 ["Avis valides", stats.avisValidated],
                 ["Participations", stats.participationsTotal],
@@ -194,8 +195,10 @@
                 ? vehicules.map((v) => `
                     <div class="border rounded p-2 mb-2">
                         <div><strong>#${v.id}</strong> ${v.marque} ${v.modele} (${v.places} places) - owner #${v.ownerId} ${v.ownerPseudo || ""}</div>
+                        <div class="small ${v.isSuspended ? "text-danger" : "text-success"}">${v.isSuspended ? "Suspendu" : "Actif"}</div>
                         <div class="mt-2 d-flex gap-2">
                             <button class="btn btn-sm btn-outline-secondary" data-edit-vehicule="${v.id}">Modifier</button>
+                            <button class="btn btn-sm ${v.isSuspended ? "btn-outline-success" : "btn-outline-warning"}" data-toggle-suspend-vehicule="${v.id}" data-suspended="${v.isSuspended ? "1" : "0"}">${v.isSuspended ? "Reactiver" : "Suspendre"}</button>
                             <button class="btn btn-sm btn-outline-danger" data-del-vehicule="${v.id}">Supprimer</button>
                         </div>
                     </div>
@@ -223,6 +226,18 @@
                     await api(`http://localhost:8000/api/admin/vehicules/${id}`, { method: "DELETE" });
                     afficherMessage("Vehicule supprime.", "text-success");
                     await chargerTout();
+                });
+            });
+
+            zoneVehicules.querySelectorAll("[data-toggle-suspend-vehicule]").forEach((b) => {
+                b.addEventListener("click", async () => {
+                    const id = b.getAttribute("data-toggle-suspend-vehicule");
+                    const estSuspendu = b.getAttribute("data-suspended") === "1";
+                    const endpoint = estSuspendu ? "unsuspend" : "suspend";
+                    await api(`http://localhost:8000/api/admin/vehicules/${id}/${endpoint}`, { method: "POST" });
+                    afficherMessage(estSuspendu ? "Vehicule reactive." : "Vehicule suspendu.", "text-success");
+                    await chargerVehicules();
+                    await chargerStats();
                 });
             });
         } catch (error) {
@@ -257,6 +272,7 @@
                         <div><strong>#${t.id}</strong> ${t.depart} -> ${t.destination} | ${t.prix} EUR | places ${t.placesLibres}</div>
                         <div class="mt-2 d-flex gap-2">
                             <button class="btn btn-sm btn-outline-secondary" data-edit-trajet="${t.id}">Modifier</button>
+                            <button class="btn btn-sm btn-outline-danger" data-del-trajet="${t.id}">Supprimer</button>
                         </div>
                     </div>
                 `).join("")
@@ -280,6 +296,16 @@
                     await chargerTrajets();
                 });
             });
+
+            zoneTrajets.querySelectorAll("[data-del-trajet]").forEach((b) => {
+                b.addEventListener("click", async () => {
+                    const id = b.getAttribute("data-del-trajet");
+                    if (!confirm("Supprimer ce trajet ? Les participants seront rembourses.")) return;
+                    await api(`http://localhost:8000/api/admin/trajets/${id}`, { method: "DELETE" });
+                    afficherMessage("Trajet supprime.", "text-success");
+                    await chargerTout();
+                });
+            });
         } catch (error) {
             afficherMessage("Erreur trajets: " + error.message, "text-danger");
         }
@@ -291,27 +317,42 @@
             zoneAvis.innerHTML = avis.length
                 ? avis.map((a) => `
                     <div class="border rounded p-2 mb-2">
-                        <div><strong>#${a.id}</strong> ${a.pseudo}: ${a.commentaire}</div>
+                        <div><strong>#${a.id}</strong> ${a.pseudo}</div>
+                        <p class="mb-1">${a.commentaire || "(sans commentaire)"}</p>
                         <div class="small text-muted">valide: ${a.isValidated ? "oui" : "non"}</div>
                         <div class="mt-2 d-flex gap-2">
-                            <button class="btn btn-sm btn-outline-secondary" data-edit-avis="${a.id}">Modifier</button>
+                            <button class="btn btn-sm ${a.isValidated ? "btn-outline-warning" : "btn-outline-success"}" data-toggle-avis="${a.id}" data-validated="${a.isValidated ? "1" : "0"}">${a.isValidated ? "Retirer validation" : "Valider"}</button>
+                            <button class="btn btn-sm btn-outline-secondary" data-edit-comment-avis="${a.id}">Editer commentaire</button>
                             <button class="btn btn-sm btn-outline-danger" data-del-avis="${a.id}">Supprimer</button>
                         </div>
                     </div>
                 `).join("")
                 : "<p class='text-muted mb-0'>Aucun avis.</p>";
 
-            zoneAvis.querySelectorAll("[data-edit-avis]").forEach((b) => {
+            zoneAvis.querySelectorAll("[data-toggle-avis]").forEach((b) => {
                 b.addEventListener("click", async () => {
-                    const id = b.getAttribute("data-edit-avis");
-                    const commentaire = prompt("Nouveau commentaire:");
-                    if (commentaire === null) return;
-                    const isValidated = confirm("Valider cet avis ?");
+                    const id = b.getAttribute("data-toggle-avis");
+                    const estValide = b.getAttribute("data-validated") === "1";
                     await api(`http://localhost:8000/api/admin/avis/${id}`, {
                         method: "PUT",
-                        body: JSON.stringify({ commentaire, isValidated }),
+                        body: JSON.stringify({ isValidated: !estValide }),
                     });
-                    afficherMessage("Avis modifie.", "text-success");
+                    afficherMessage(!estValide ? "Avis valide." : "Validation retiree.", "text-success");
+                    await chargerAvis();
+                    await chargerStats();
+                });
+            });
+
+            zoneAvis.querySelectorAll("[data-edit-comment-avis]").forEach((b) => {
+                b.addEventListener("click", async () => {
+                    const id = b.getAttribute("data-edit-comment-avis");
+                    const commentaire = prompt("Nouveau commentaire (laisser vide pour supprimer le texte):", "");
+                    if (commentaire === null) return;
+                    await api(`http://localhost:8000/api/admin/avis/${id}`, {
+                        method: "PUT",
+                        body: JSON.stringify({ commentaire }),
+                    });
+                    afficherMessage("Commentaire mis a jour.", "text-success");
                     await chargerAvis();
                 });
             });

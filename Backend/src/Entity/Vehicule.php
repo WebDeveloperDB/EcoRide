@@ -31,6 +31,9 @@ class Vehicule
     #[ORM\Column]
     private int $places = 1;
 
+    #[ORM\Column(options: ['default' => false])]
+    private bool $isSuspended = false;
+
     #[ORM\ManyToOne(inversedBy: 'vehicules')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Utilisateur $utilisateur = null;
@@ -108,6 +111,18 @@ class Vehicule
     public function setPlaces(int $places): static
     {
         $this->places = $places;
+
+        return $this;
+    }
+
+    public function isSuspended(): bool
+    {
+        return $this->isSuspended;
+    }
+
+    public function setSuspended(bool $isSuspended): static
+    {
+        $this->isSuspended = $isSuspended;
 
         return $this;
     }

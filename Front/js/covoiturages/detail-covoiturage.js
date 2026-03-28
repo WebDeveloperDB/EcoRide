@@ -19,11 +19,6 @@
         return;
     }
 
-    const legacyDeleteButton = document.getElementById("btnSupprimerTrajetAdminDetail");
-    if (legacyDeleteButton) {
-        legacyDeleteButton.classList.add("d-none");
-    }
-
     chargerDetailTrajet(idTrajet);
     initialiserFormulaireAvis(idTrajet);
 
@@ -62,6 +57,7 @@
         const avis = document.getElementById("detailAvis");
         const boutonParticiper = document.getElementById("btnParticiperDetail");
         const boutonModifierTrajetAdmin = document.getElementById("btnModifierTrajetAdminDetail");
+        const boutonSupprimerTrajetAdmin = document.getElementById("btnSupprimerTrajetAdminDetail");
         const boutonDemarrer = document.getElementById("btnDemarrerTrajetDetail");
         const boutonArrivee = document.getElementById("btnArriveeTrajetDetail");
         const champPseudoAvis = document.getElementById("avisTrajetPseudo");
@@ -173,6 +169,21 @@
                 try {
                     await modifierTrajetAdmin(detail.id, nouveauPrix, nouvellesPlaces);
                     chargerDetailTrajet(idTrajet);
+                } catch (erreur) {
+                    alert("Erreur: " + erreur.message);
+                }
+            };
+        }
+
+        if (boutonSupprimerTrajetAdmin) {
+            boutonSupprimerTrajetAdmin.classList.toggle("d-none", !adminConnecte);
+            boutonSupprimerTrajetAdmin.onclick = async () => {
+                if (!window.confirm("Supprimer ce trajet ? Les participants seront rembourses.")) {
+                    return;
+                }
+                try {
+                    await supprimerTrajetAdmin(detail.id);
+                    window.location.href = "/EcoRide/Front/covoiturages";
                 } catch (erreur) {
                     alert("Erreur: " + erreur.message);
                 }
@@ -363,6 +374,25 @@
         if (!reponse.ok) {
             const resultat = await reponse.json().catch(() => ({}));
             throw new Error(resultat.message || "Modification impossible.");
+        }
+    }
+
+    async function supprimerTrajetAdmin(idTrajetCourant) {
+        const token = typeof window.getToken === "function" ? window.getToken() : null;
+        if (!token) {
+            throw new Error("Connexion admin requise.");
+        }
+
+        const reponse = await fetch(`http://localhost:8000/api/admin/trajets/${idTrajetCourant}`, {
+            method: "DELETE",
+            headers: {
+                "X-AUTH-TOKEN": token,
+            },
+        });
+
+        if (!reponse.ok) {
+            const resultat = await reponse.json().catch(() => ({}));
+            throw new Error(resultat.message || "Suppression impossible.");
         }
     }
 

@@ -143,6 +143,7 @@ function construireActionsAdminCovoiturage(trajet) {
     return `
         <div class="d-flex gap-2 mt-2">
             <button type="button" class="btn btn-sm btn-outline-secondary" data-admin-modifier-trajet-covoiturage="${trajet.id}">Modifier</button>
+            <button type="button" class="btn btn-sm btn-outline-danger" data-admin-supprimer-trajet-covoiturage="${trajet.id}">Supprimer</button>
         </div>
     `;
 }
@@ -171,6 +172,20 @@ function activerActionsAdminCovoiturage(conteneur) {
             formulaireRecherche?.requestSubmit();
         });
     });
+
+    conteneur.querySelectorAll("[data-admin-supprimer-trajet-covoiturage]").forEach((bouton) => {
+        bouton.addEventListener("click", async () => {
+            const idTrajet = bouton.getAttribute("data-admin-supprimer-trajet-covoiturage");
+            if (!idTrajet) {
+                return;
+            }
+            if (!window.confirm("Supprimer ce trajet ? Les participants seront rembourses.")) {
+                return;
+            }
+            await supprimerTrajetAdminCovoiturage(idTrajet);
+            document.getElementById("search-itineraries")?.requestSubmit();
+        });
+    });
 }
 
 async function modifierTrajetAdminCovoiturage(idTrajet, prix, placesLibres) {
@@ -194,6 +209,25 @@ async function modifierTrajetAdminCovoiturage(idTrajet, prix, placesLibres) {
     if (!reponse.ok) {
         const resultat = await reponse.json().catch(() => ({}));
         throw new Error(resultat.message || "Modification impossible.");
+    }
+}
+
+async function supprimerTrajetAdminCovoiturage(idTrajet) {
+    const token = typeof window.getToken === "function" ? window.getToken() : null;
+    if (!token) {
+        alert("Connexion admin requise.");
+        return;
+    }
+
+    const reponse = await fetch(`http://localhost:8000/api/admin/trajets/${idTrajet}`, {
+        method: "DELETE",
+        headers: {
+            "X-AUTH-TOKEN": token,
+        },
+    });
+    if (!reponse.ok) {
+        const resultat = await reponse.json().catch(() => ({}));
+        throw new Error(resultat.message || "Suppression impossible.");
     }
 }
 
