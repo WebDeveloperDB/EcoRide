@@ -67,15 +67,22 @@ Fait dans ce bloc
 	- filtre duree fiable cote backend via calcul departAt/arriveeAt
 	- filtre note fiable cote backend via moyenne des notes d'avis valides par trajet
 	- ajout note (1-5) sur avis + migration DB + envoi note depuis formulaires avis
+- MongoDB (28.03):
+	- integration ODM active (mapping src/Document)
+	- document SearchEvent enregistre les recherches (criteres + filtres + nombre resultats)
+	- document AdminStatSnapshot enregistre les snapshots de stats admin
+	- service MongoAnalyticsLogger branche sur /api/trajet/search et /api/admin/stats
+	- variables env Mongo harmonisees (MONGODB_URL, MONGODB_DB)
 
 Reste a faire
 - Contact page + mentions legales finales
 - Tests fonctionnels complets frontend/backend
+- Exploitation MongoDB cote dashboard (graphiques/indicateurs historiques)
 
 Ordre propose (suite)
-1. Stabilisation bloc admin + accueil (tests manuels + corrections UX)
+1. Stabilisation bloc admin + accueil + mongo (tests manuels + corrections UX)
 2. Contact page + mentions legales finales
-3. Finitions et recette complete
+3. Finitions, dashboard analytics Mongo et recette complete
 
 Regle suivi
 - Mettre a jour ce fichier Plan.txt a chaque etape terminee.

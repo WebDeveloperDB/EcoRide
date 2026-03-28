@@ -12,6 +12,7 @@ use App\Repository\ParticipationRepository;
 use App\Repository\TrajetRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\VehiculeRepository;
+use App\Service\MongoAnalyticsLogger;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -28,14 +29,15 @@ class AdminController extends AbstractController
         TrajetRepository $trajetRepository,
         VehiculeRepository $vehiculeRepository,
         AvisRepository $avisRepository,
-        ParticipationRepository $participationRepository
+        ParticipationRepository $participationRepository,
+        MongoAnalyticsLogger $mongoAnalyticsLogger
     ): JsonResponse {
         $admin = $this->requireAdmin();
         if ($admin instanceof JsonResponse) {
             return $admin;
         }
 
-        return $this->json([
+        $stats = [
             'usersTotal' => $utilisateurRepository->count([]),
             'usersSuspended' => $utilisateurRepository->count(['isSuspended' => true]),
             'employeesTotal' => $this->countByRole($utilisateurRepository, 'ROLE_EMPLOYEE'),
@@ -49,7 +51,11 @@ class AdminController extends AbstractController
             'avisPending' => $avisRepository->count(['isValidated' => false]),
             'avisValidated' => $avisRepository->count(['isValidated' => true]),
             'participationsTotal' => $participationRepository->count([]),
-        ]);
+        ];
+
+        $mongoAnalyticsLogger->logAdminStats($stats, $admin->getEmail());
+
+        return $this->json($stats);
     }
 
     #[Route('/users', name: 'admin_users_list', methods: ['GET'])]

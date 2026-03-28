@@ -8,6 +8,7 @@ use App\Entity\Utilisateur;
 use App\Repository\AvisRepository;
 use App\Repository\ParticipationRepository;
 use App\Repository\VehiculeRepository;
+use App\Service\MongoAnalyticsLogger;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\TrajetRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -30,7 +31,7 @@ class TrajetController extends AbstractController
     }
 
     #[Route('/search', name: 'search_trajet', methods: ['GET'])]
-    public function search(Request $request, TrajetRepository $repo): JsonResponse
+    public function search(Request $request, TrajetRepository $repo, MongoAnalyticsLogger $mongoAnalyticsLogger): JsonResponse
     {
         $depart = $request->query->get('departure');
         $destination = $request->query->get('destination');
@@ -100,6 +101,30 @@ class TrajetController extends AbstractController
                 'durationHours' => $durationHours,
             ];
         }
+
+        $averageRating = null;
+        if (count($resultats) > 0) {
+            $sumRatings = array_reduce($resultats, static fn (float $carry, array $item): float => $carry + (float) ($item['rating'] ?? 0), 0.0);
+            $averageRating = round($sumRatings / count($resultats), 1);
+        }
+
+        /** @var Utilisateur|null $utilisateur */
+        $utilisateur = $this->getUser();
+        $mongoAnalyticsLogger->logSearch([
+            'departure' => $depart,
+            'destination' => $destination,
+            'travelDate' => $date,
+            'filters' => [
+                'ecoOnly' => $ecoOnly,
+                'maxPrice' => $maxPrice,
+                'maxDuration' => $maxDuration,
+                'minRating' => $minRating,
+            ],
+            'resultsCount' => count($resultats),
+            'averageRating' => $averageRating,
+            'userEmail' => $utilisateur?->getEmail(),
+            'userRole' => $this->resolvePrincipalRole($utilisateur),
+        ]);
 
         return $this->json($resultats);
     }
@@ -423,6 +448,26 @@ class TrajetController extends AbstractController
         $roles = $utilisateur->getRoles();
 
         return in_array('ROLE_ADMIN', $roles, true) || $type === 'chauffeur' || $type === 'les_deux';
+    }
+
+    private function resolvePrincipalRole(?Utilisateur $utilisateur): ?string
+    {
+        if (!$utilisateur instanceof Utilisateur) {
+            return null;
+        }
+
+        $roles = $utilisateur->getRoles();
+        if (in_array('ROLE_ADMIN', $roles, true)) {
+            return 'ROLE_ADMIN';
+        }
+        if (in_array('ROLE_EMPLOYEE', $roles, true)) {
+            return 'ROLE_EMPLOYEE';
+        }
+        if (in_array('ROLE_USER', $roles, true)) {
+            return 'ROLE_USER';
+        }
+
+        return $roles[0] ?? null;
     }
 
     private function peutAdministrerTrajet(Utilisateur $utilisateur, Trajet $trajet): bool
