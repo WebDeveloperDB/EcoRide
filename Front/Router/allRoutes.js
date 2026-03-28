@@ -11,6 +11,7 @@ export const allRoutes = [
     new Route("/EcoRide/Front/account", "Mon compte", "/EcoRide/Front/pages/auth/account.html", ["ROLE_USER"], "/EcoRide/Front/js/auth/account.js"),
     new Route("/EcoRide/Front/creer-trajet", "Creer un trajet", "/EcoRide/Front/pages/trajets/creer.html", ["ROLE_USER"], "/EcoRide/Front/js/trajets/creer-trajet.js"),
     new Route("/EcoRide/Front/admin-dashboard", "Dashboard Admin", "/EcoRide/Front/pages/admin/dashboardAdmin.html", ["ROLE_ADMIN"], "/EcoRide/Front/js/admin/dashboardAdmin.js"),
+    new Route("/EcoRide/Front/admin-mongo-stats", "Stats MongoDB", "/EcoRide/Front/pages/admin/mongoStats.html", ["ROLE_ADMIN"], "/EcoRide/Front/js/admin/mongoStats.js"),
     new Route("/EcoRide/Front/editPassword", "Changement de mot de passe", "/EcoRide/Front/pages/auth/editPassword.html", ["ROLE_USER"], ""),
     new Route("/EcoRide/Front/employeeDashboard", "Dashboard Employé", "/EcoRide/Front/pages/employee/dashboardEmployee.html", ["ROLE_EMPLOYEE"], "/EcoRide/Front/js/employee/dashboardEmployeeAvis.js"),
 ];

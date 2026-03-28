@@ -1,0 +1,49 @@
+<div class="hero-scene text-center text-white">
+    <div class="hero-scene-content">
+        <h1>Statistiques MongoDB</h1>
+    </div>
+</div>
+
+<div class="container py-4">
+    <div id="mongoStatsMessage" class="mb-3"></div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h5 mb-0">Vue analytics</h2>
+        <button type="button" class="btn btn-outline-success btn-sm" id="mongoStatsRefreshBtn">Rafraichir</button>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h3 class="h6">Indicateurs globaux</h3>
+            <div id="mongoStatsCards" class="row g-2"></div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h3 class="h6">Tendances recherche par jour</h3>
+            <div id="mongoStatsDaily" class="small text-muted"></div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h3 class="h6">Usage des filtres</h3>
+            <div id="mongoStatsFilters" class="small text-muted"></div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h3 class="h6">Dernieres recherches</h3>
+            <div id="mongoStatsLatestSearches" class="small text-muted"></div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h3 class="h6">Derniers snapshots admin</h3>
+            <div id="mongoStatsSnapshots" class="small text-muted"></div>
+        </div>
+    </div>
+</div>
