@@ -73,11 +73,12 @@ Fait dans ce bloc
 	- document AdminStatSnapshot enregistre les snapshots de stats admin
 	- service MongoAnalyticsLogger branche sur /api/trajet/search et /api/admin/stats
 	- variables env Mongo harmonisees (MONGODB_URL, MONGODB_DB)
+	- dashboard admin: section "Statistiques MongoDB" (volumes, tendances, usage filtres, dernieres recherches)
+	- endpoint API: GET /api/admin/stats/mongo
 
 Reste a faire
 - Contact page + mentions legales finales
 - Tests fonctionnels complets frontend/backend
-- Exploitation MongoDB cote dashboard (graphiques/indicateurs historiques)
 
 Ordre propose (suite)
 1. Stabilisation bloc admin + accueil + mongo (tests manuels + corrections UX)

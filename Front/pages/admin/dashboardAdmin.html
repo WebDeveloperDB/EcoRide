@@ -16,6 +16,19 @@
 
     <div class="card mb-4">
         <div class="card-body">
+            <h2 class="h5">Statistiques MongoDB (analytics)</h2>
+            <div id="adminMongoStats" class="row g-2 mb-3"></div>
+            <h3 class="h6">Tendances recherche par jour</h3>
+            <div id="adminMongoDailySearches" class="small mb-3 text-muted"></div>
+            <h3 class="h6">Usage des filtres</h3>
+            <div id="adminMongoFilterUsage" class="small mb-3 text-muted"></div>
+            <h3 class="h6">Dernieres recherches</h3>
+            <div id="adminMongoLatestSearches" class="small mb-0 text-muted"></div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
             <h2 class="h5">Creer un employe (guide)</h2>
             <form id="adminCreateEmployeeForm" class="row g-2">
                 <div class="col-md-4"><input class="form-control" id="adminEmployeePseudo" placeholder="Pseudo employe" required></div>

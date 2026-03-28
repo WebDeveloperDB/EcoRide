@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Document\AdminStatSnapshot;
+use App\Document\SearchEvent;
 use App\Entity\Avis;
 use App\Entity\Participation;
 use App\Entity\Trajet;
@@ -13,6 +15,7 @@ use App\Repository\TrajetRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\VehiculeRepository;
 use App\Service\MongoAnalyticsLogger;
+use Doctrine\ODM\MongoDB\DocumentManager as MongoDocumentManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -56,6 +59,98 @@ class AdminController extends AbstractController
         $mongoAnalyticsLogger->logAdminStats($stats, $admin->getEmail());
 
         return $this->json($stats);
+    }
+
+    #[Route('/stats/mongo', name: 'admin_stats_mongo', methods: ['GET'])]
+    public function mongoStats(MongoDocumentManager $mongoDocumentManager): JsonResponse
+    {
+        $admin = $this->requireAdmin();
+        if ($admin instanceof JsonResponse) {
+            return $admin;
+        }
+
+        /** @var SearchEvent[] $searchEvents */
+        $searchEvents = $mongoDocumentManager->getRepository(SearchEvent::class)->findBy([], ['createdAt' => 'DESC'], 800);
+        /** @var AdminStatSnapshot[] $snapshots */
+        $snapshots = $mongoDocumentManager->getRepository(AdminStatSnapshot::class)->findBy([], ['createdAt' => 'DESC'], 300);
+
+        $dailySearches = [];
+        $filterUsage = [
+            'ecoOnly' => 0,
+            'maxPrice' => 0,
+            'maxDuration' => 0,
+            'minRating' => 0,
+        ];
+        $resultsSum = 0;
+        $ratingsSum = 0.0;
+        $ratingsCount = 0;
+        $latestSearches = [];
+
+        foreach ($searchEvents as $index => $event) {
+            $createdAt = $event->getCreatedAt();
+            if ($createdAt instanceof \DateTimeImmutable) {
+                $key = $createdAt->format('Y-m-d');
+                $dailySearches[$key] = ($dailySearches[$key] ?? 0) + 1;
+            }
+
+            $filters = $event->getFilters();
+            if (($filters['ecoOnly'] ?? false) === true) {
+                $filterUsage['ecoOnly']++;
+            }
+            if (($filters['maxPrice'] ?? null) !== null) {
+                $filterUsage['maxPrice']++;
+            }
+            if (($filters['maxDuration'] ?? null) !== null) {
+                $filterUsage['maxDuration']++;
+            }
+            if (($filters['minRating'] ?? null) !== null) {
+                $filterUsage['minRating']++;
+            }
+
+            $resultsSum += $event->getResultsCount();
+
+            if ($event->getAverageRating() !== null) {
+                $ratingsSum += (float) $event->getAverageRating();
+                $ratingsCount++;
+            }
+
+            if ($index < 8) {
+                $latestSearches[] = [
+                    'createdAt' => $createdAt?->format(DATE_ATOM),
+                    'departure' => $event->getDeparture(),
+                    'destination' => $event->getDestination(),
+                    'resultsCount' => $event->getResultsCount(),
+                    'userEmail' => $event->getUserEmail(),
+                    'filters' => $filters,
+                ];
+            }
+        }
+
+        ksort($dailySearches);
+        $dailySearchesData = array_map(
+            static fn (string $date, int $count): array => ['date' => $date, 'count' => $count],
+            array_keys($dailySearches),
+            array_values($dailySearches)
+        );
+
+        $latestSnapshots = array_map(static fn (AdminStatSnapshot $snapshot): array => [
+            'createdAt' => $snapshot->getCreatedAt()?->format(DATE_ATOM),
+            'adminEmail' => $snapshot->getAdminEmail(),
+            'stats' => $snapshot->getStats(),
+        ], array_slice($snapshots, 0, 8));
+
+        $payload = [
+            'searchEventsTotal' => count($searchEvents),
+            'avgResultsPerSearch' => count($searchEvents) > 0 ? round($resultsSum / count($searchEvents), 2) : 0,
+            'avgRatingSeen' => $ratingsCount > 0 ? round($ratingsSum / $ratingsCount, 2) : 0,
+            'filterUsage' => $filterUsage,
+            'dailySearches' => $dailySearchesData,
+            'latestSearches' => $latestSearches,
+            'adminSnapshotsTotal' => count($snapshots),
+            'latestSnapshots' => $latestSnapshots,
+        ];
+
+        return $this->json($payload);
     }
 
     #[Route('/users', name: 'admin_users_list', methods: ['GET'])]
