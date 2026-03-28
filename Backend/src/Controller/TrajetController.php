@@ -35,6 +35,10 @@ class TrajetController extends AbstractController
         $depart = $request->query->get('departure');
         $destination = $request->query->get('destination');
         $dateStr = $request->query->get('date');
+        $ecoParam = (string) ($request->query->get('ecoOnly', '') ?? '');
+        $maxPriceParam = $request->query->get('maxPrice');
+        $maxDurationParam = $request->query->get('maxDuration');
+        $minRatingParam = $request->query->get('minRating');
 
         $date = null;
         if ($dateStr) {
@@ -46,8 +50,58 @@ class TrajetController extends AbstractController
         }
 
         $trajets = $repo->search($depart, $destination, $date);
+        $trajetIds = array_values(array_filter(array_map(static fn (Trajet $trajet): ?int => $trajet->getId(), $trajets)));
+        $ratings = $repo->findAverageRatingsByTrajetIds($trajetIds);
 
-        return $this->json($trajets, 200, [], ['groups' => 'trajet:read']);
+        $ecoOnly = in_array(mb_strtolower($ecoParam), ['1', 'true', 'yes', 'ecological'], true);
+        $maxPrice = is_numeric((string) $maxPriceParam) ? (float) $maxPriceParam : null;
+        $maxDuration = is_numeric((string) $maxDurationParam) ? (float) $maxDurationParam : null;
+        $minRating = is_numeric((string) $minRatingParam) ? (float) $minRatingParam : null;
+
+        $resultats = [];
+        foreach ($trajets as $trajet) {
+            $idTrajet = (int) ($trajet->getId() ?? 0);
+            $rating = $ratings[$idTrajet] ?? 0.0;
+            $departAt = $trajet->getDepartAt();
+            $arriveeAt = $trajet->getArriveeAt();
+            $durationHours = null;
+            if ($departAt instanceof \DateTimeImmutable && $arriveeAt instanceof \DateTimeImmutable) {
+                $durationHours = round(max(0, $arriveeAt->getTimestamp() - $departAt->getTimestamp()) / 3600, 1);
+            }
+
+            if ($ecoOnly && !$trajet->isEco()) {
+                continue;
+            }
+            if ($maxPrice !== null && (float) ($trajet->getPrix() ?? 0) > $maxPrice) {
+                continue;
+            }
+            if ($maxDuration !== null && $durationHours !== null && $durationHours > $maxDuration) {
+                continue;
+            }
+            if ($minRating !== null && $rating < $minRating) {
+                continue;
+            }
+
+            $resultats[] = [
+                'id' => $trajet->getId(),
+                'depart' => $trajet->getDepart(),
+                'destination' => $trajet->getDestination(),
+                'departAt' => $trajet->getDepartAt()?->format(DATE_ATOM),
+                'arriveeAt' => $trajet->getArriveeAt()?->format(DATE_ATOM),
+                'prix' => $trajet->getPrix(),
+                'eco' => $trajet->isEco(),
+                'driverName' => $trajet->getDriverName(),
+                'driverPhoto' => $trajet->getDriverPhoto(),
+                'carPhoto' => $trajet->getCarPhoto(),
+                'vehicle' => $trajet->getVehicle(),
+                'placesLibres' => $trajet->getPlacesLibres(),
+                'statut' => $trajet->getStatut(),
+                'rating' => $rating,
+                'durationHours' => $durationHours,
+            ];
+        }
+
+        return $this->json($resultats);
     }
 
     #[Route('/{id}', name: 'detail_trajet', methods: ['GET'])]

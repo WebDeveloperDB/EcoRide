@@ -32,8 +32,13 @@ class AvisController extends AbstractController
 
         $trajetId = (int) ($data['trajetId'] ?? 0);
         $commentaire = trim((string) ($data['commentaire'] ?? ''));
+        $note = (int) ($data['note'] ?? 5);
         if ($commentaire === '') {
             return $this->json(['message' => 'Commentaire obligatoire.'], 400);
+        }
+
+        if ($note < 1 || $note > 5) {
+            return $this->json(['message' => 'La note doit etre comprise entre 1 et 5.'], 400);
         }
 
         $pseudo = trim((string) ($data['pseudo'] ?? ''));
@@ -45,6 +50,7 @@ class AvisController extends AbstractController
         $avis = new Avis();
         $avis->setPseudo($pseudo);
         $avis->setCommentaire($commentaire);
+        $avis->setNote($note);
         $avis->setValidated(false);
         $avis->setCreatedAt(new \DateTimeImmutable());
 

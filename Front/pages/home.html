@@ -60,8 +60,13 @@
           class="home-step-image"
           alt="Rechercher"
         >
-        <h5 class="mt-3">1. Recherchez</h5>
-        <p class="mb-0">Entrez votre lieu de départ et d'arrivée pour trouver des trajets adaptés.</p>
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-success home-text-admin-btn d-none"
+          data-home-text="step1Title,step1Description"
+        >Editer texte</button>
+        <h5 id="homeStep1Title" class="mt-3">1. Recherchez</h5>
+        <p id="homeStep1Description" class="mb-0">Entrez votre lieu de départ et d'arrivée pour trouver des trajets adaptés.</p>
       </article>
     </div>
     <div class="col-md-4 mb-4 mb-md-0">
@@ -78,8 +83,13 @@
           class="home-step-image"
           alt="Reserver"
         >
-        <h5 class="mt-3">2. Réservez</h5>
-        <p class="mb-0">Sélectionnez un covoiturage, réservez votre place, contactez le conducteur.</p>
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-success home-text-admin-btn d-none"
+          data-home-text="step2Title,step2Description"
+        >Editer texte</button>
+        <h5 id="homeStep2Title" class="mt-3">2. Réservez</h5>
+        <p id="homeStep2Description" class="mb-0">Sélectionnez un covoiturage, réservez votre place, contactez le conducteur.</p>
       </article>
     </div>
     <div class="col-md-4">
@@ -96,8 +106,13 @@
           class="home-step-image"
           alt="Voyager"
         >
-        <h5 class="mt-3">3. Voyagez</h5>
-        <p class="mb-0">Partagez un trajet, faites des économies et réduisez votre impact écologique.</p>
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-success home-text-admin-btn d-none"
+          data-home-text="step3Title,step3Description"
+        >Editer texte</button>
+        <h5 id="homeStep3Title" class="mt-3">3. Voyagez</h5>
+        <p id="homeStep3Description" class="mb-0">Partagez un trajet, faites des économies et réduisez votre impact écologique.</p>
       </article>
     </div>
   </div>
@@ -106,32 +121,41 @@
 
 <!-- avantages -->
 <section class="container my-5">
-  <h3 class="text-center text-success mb-4">Vos avantages avec EcoRide</h3>
+  <div class="d-flex justify-content-center align-items-center gap-2 mb-4">
+    <h3 id="homeAdvantagesTitle" class="text-center text-success mb-0">Vos avantages avec EcoRide</h3>
+    <button type="button" class="btn btn-sm btn-outline-success home-text-admin-btn d-none" data-home-text="advantagesTitle">Editer titre</button>
+  </div>
   <div class="row g-4">
     <div class="col-md-4">
-      <div class="card border-success h-100 shadow">
-        <img src="/EcoRide/Front/images/covoiturage.jpg" class="card-img-top" alt="Covoiturage">
+      <div class="card border-success h-100 shadow position-relative">
+        <button type="button" class="btn btn-sm btn-light home-image-admin-btn d-none" data-home-slot="advantage1">Modifier image</button>
+        <img id="homeAdvantage1Image" data-default-src="/EcoRide/Front/images/covoiturage.jpg" src="/EcoRide/Front/images/covoiturage.jpg" class="card-img-top" alt="Covoiturage">
         <div class="card-body">
-          <h5 class="card-title text-success">Économisez de l'argent</h5>
-          <p class="card-text">Partagez vos trajets et réduisez vos frais de déplacement.</p>
+          <button type="button" class="btn btn-sm btn-outline-success home-text-admin-btn d-none mb-2" data-home-text="advantage1Title,advantage1Description">Editer texte</button>
+          <h5 id="homeAdvantage1Title" class="card-title text-success">Économisez de l'argent</h5>
+          <p id="homeAdvantage1Description" class="card-text">Partagez vos trajets et réduisez vos frais de déplacement.</p>
         </div>
       </div>
     </div>
     <div class="col-md-4">
-      <div class="card border-success h-100 shadow">
-        <img src="/EcoRide/Front/images/émissions.jpg" class="card-img-top" alt="Environnement">
+      <div class="card border-success h-100 shadow position-relative">
+        <button type="button" class="btn btn-sm btn-light home-image-admin-btn d-none" data-home-slot="advantage2">Modifier image</button>
+        <img id="homeAdvantage2Image" data-default-src="/EcoRide/Front/images/émissions.jpg" src="/EcoRide/Front/images/émissions.jpg" class="card-img-top" alt="Environnement">
         <div class="card-body">
-          <h5 class="card-title text-success">Moins d'émissions</h5>
-          <p class="card-text">Réduisez le CO₂ et agissez concrètement pour la planète.</p>
+          <button type="button" class="btn btn-sm btn-outline-success home-text-admin-btn d-none mb-2" data-home-text="advantage2Title,advantage2Description">Editer texte</button>
+          <h5 id="homeAdvantage2Title" class="card-title text-success">Moins d'émissions</h5>
+          <p id="homeAdvantage2Description" class="card-text">Réduisez le CO₂ et agissez concrètement pour la planète.</p>
         </div>
       </div>
     </div>
     <div class="col-md-4">
-      <div class="card border-success h-100 shadow">
-        <img src="/EcoRide/Front/images/communauté.jpg" class="card-img-top" alt="Communauté">
+      <div class="card border-success h-100 shadow position-relative">
+        <button type="button" class="btn btn-sm btn-light home-image-admin-btn d-none" data-home-slot="advantage3">Modifier image</button>
+        <img id="homeAdvantage3Image" data-default-src="/EcoRide/Front/images/communauté.jpg" src="/EcoRide/Front/images/communauté.jpg" class="card-img-top" alt="Communauté">
         <div class="card-body">
-          <h5 class="card-title text-success">Rejoignez la communauté</h5>
-          <p class="card-text">Faites de nouvelles rencontres et échangez avec des membres engagés.</p>
+          <button type="button" class="btn btn-sm btn-outline-success home-text-admin-btn d-none mb-2" data-home-text="advantage3Title,advantage3Description">Editer texte</button>
+          <h5 id="homeAdvantage3Title" class="card-title text-success">Rejoignez la communauté</h5>
+          <p id="homeAdvantage3Description" class="card-text">Faites de nouvelles rencontres et échangez avec des membres engagés.</p>
         </div>
       </div>
     </div>
@@ -168,6 +192,16 @@
         <div class="mb-3">
           <label for="avis_commentaire" class="form-label required">Votre commentaire :</label>
           <textarea id="avis_commentaire" name="commentaire" required placeholder="Votre avis" class="form-control" rows="4" maxlength="255"></textarea>
+        </div>
+        <div class="mb-3">
+          <label for="avis_note" class="form-label required">Votre note (1-5) :</label>
+          <select id="avis_note" name="note" class="form-select" required>
+            <option value="5">5</option>
+            <option value="4">4</option>
+            <option value="3">3</option>
+            <option value="2">2</option>
+            <option value="1">1</option>
+          </select>
         </div>
         <div class="mb-3">
           <button type="submit" class="btn btn-success w-100">Envoyer</button>

@@ -13,6 +13,7 @@ Fait
 - US11: Statut trajet + demarrer/arrivee + avis passagers apres arrivee OK
 - US12: Dashboard employe (auth X-AUTH-TOKEN + role checks employe/admin) OK
 - US13: Stats admin + suspension comptes + creation employe guidee OK
+- US4: Filtres backend note/duree/prix/eco + note avis OK
 - Admin trajets: boutons modifier sur pages principales OK
 
 Fait dans ce bloc
@@ -59,16 +60,21 @@ Fait dans ce bloc
 	- Accueil: un seul hero image (suppression du double header)
 	- Accueil: style "Comment ca marche" modernise et images harmonisees
 	- Accueil: boutons admin pour changer les images hero + etapes via upload
-	- API media accueil: GET /api/home/media + POST /api/admin/home/media/{slot}
+	- Accueil: admin peut modifier textes + images de "Comment ca marche" et "Vos avantages"
+	- API media accueil: GET /api/home/media + POST /api/admin/home/media/{slot} + PUT /api/admin/home/content/{key}
+- US4 filtres backend (28.03):
+	- endpoint recherche /api/trajet/search accepte ecoOnly, maxPrice, maxDuration, minRating
+	- filtre duree fiable cote backend via calcul departAt/arriveeAt
+	- filtre note fiable cote backend via moyenne des notes d'avis valides par trajet
+	- ajout note (1-5) sur avis + migration DB + envoi note depuis formulaires avis
 
 Reste a faire
-- US4: Filtres backend complets (note/duree fiables)
 - Contact page + mentions legales finales
 - Tests fonctionnels complets frontend/backend
 
 Ordre propose (suite)
-1. Stabilisation bloc admin (tests manuels + corrections UX)
-2. US4 filtres backend complets
+1. Stabilisation bloc admin + accueil (tests manuels + corrections UX)
+2. Contact page + mentions legales finales
 3. Finitions et recette complete
 
 Regle suivi

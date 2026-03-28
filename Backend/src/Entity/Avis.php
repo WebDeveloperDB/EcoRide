@@ -24,6 +24,10 @@ class Avis
     #[Groups(["avis:read"])]
     private ?string $commentaire = null;
 
+    #[ORM\Column(type: 'smallint', options: ['default' => 5])]
+    #[Groups(["avis:read"])]
+    private int $note = 5;
+
     #[ORM\Column(type: "boolean")]
     private ?bool $isValidated = false;
 
@@ -60,6 +64,18 @@ class Avis
     public function setCommentaire(string $commentaire): static
     {
         $this->commentaire = $commentaire;
+
+        return $this;
+    }
+
+    public function getNote(): int
+    {
+        return $this->note;
+    }
+
+    public function setNote(int $note): static
+    {
+        $this->note = max(1, min(5, $note));
 
         return $this;
     }

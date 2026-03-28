@@ -14,7 +14,7 @@
                     <img id="detailPhotoConducteur" class="rounded-circle object-fit-cover" width="72" height="72" alt="Conducteur">
                     <img id="detailPhotoVehicule" class="rounded object-fit-cover" width="96" height="72" alt="Véhicule">
                     <div>
-                        <h3 id="detailNomConducteur" class="h5 mb-1"></h3>
+                        <h3 id="detailNomConducteur" class="h5 mb-1">Conducteur</h3>
                         <p id="detailVehicule" class="mb-0 text-muted"></p>
                     </div>
                 </div>
@@ -52,9 +52,19 @@
                         <label for="avisTrajetPseudo" class="form-label">Pseudo</label>
                         <input type="text" id="avisTrajetPseudo" class="form-control" required>
                     </div>
-                    <div class="col-md-8">
+                    <div class="col-md-5">
                         <label for="avisTrajetCommentaire" class="form-label">Commentaire</label>
                         <input type="text" id="avisTrajetCommentaire" class="form-control" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="avisTrajetNote" class="form-label">Note</label>
+                        <select id="avisTrajetNote" class="form-select" required>
+                            <option value="5">5</option>
+                            <option value="4">4</option>
+                            <option value="3">3</option>
+                            <option value="2">2</option>
+                            <option value="1">1</option>
+                        </select>
                     </div>
                     <div class="col-12">
                         <button type="submit" class="btn btn-outline-success">Envoyer l'avis</button>
@@ -75,8 +85,8 @@
 
         <div class="text-center mb-4">
             <button type="button" class="btn btn-success" id="btnParticiperDetail">Participer</button>
-            <button type="button" class="btn btn-outline-secondary d-none" id="btnModifierTrajetAdminDetail">Modifier (admin)</button>
-            <button type="button" class="btn btn-outline-danger d-none" id="btnSupprimerTrajetAdminDetail">Supprimer (admin)</button>
+            <button type="button" class="btn btn-outline-secondary d-none" id="btnModifierTrajetAdminDetail">Modifier</button>
+            <button type="button" class="btn btn-outline-danger d-none" id="btnSupprimerTrajetAdminDetail">Supprimer</button>
             <button type="button" class="btn btn-outline-primary d-none" id="btnDemarrerTrajetDetail">Demarrer</button>
             <button type="button" class="btn btn-outline-dark d-none" id="btnArriveeTrajetDetail">Arrivee</button>
         </div>

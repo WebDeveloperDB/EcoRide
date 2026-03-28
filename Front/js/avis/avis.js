@@ -10,6 +10,7 @@ function initAvis() {
             e.preventDefault();
             const pseudo = avisForm.querySelector("[name='pseudo']").value.trim();
             const commentaire = avisForm.querySelector("[name='commentaire']").value.trim();
+            const note = Number.parseInt(avisForm.querySelector("[name='note']")?.value || "5", 10);
             if (!pseudo || !commentaire) {
                 alert("Veuillez remplir tous les champs.");
                 return;
@@ -18,7 +19,7 @@ function initAvis() {
                 const res = await fetch("http://localhost:8000/api/avis", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ pseudo, commentaire }),
+                    body: JSON.stringify({ pseudo, commentaire, note }),
                 });
                 if (!res.ok) throw new Error("Erreur lors de l'envoi.");
                 avisForm.reset();

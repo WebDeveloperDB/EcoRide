@@ -319,7 +319,7 @@
                     <div class="border rounded p-2 mb-2">
                         <div><strong>#${a.id}</strong> ${a.pseudo}</div>
                         <p class="mb-1">${a.commentaire || "(sans commentaire)"}</p>
-                        <div class="small text-muted">valide: ${a.isValidated ? "oui" : "non"}</div>
+                        <div class="small text-muted">note: ${a.note ?? "-"} / 5 - valide: ${a.isValidated ? "oui" : "non"}</div>
                         <div class="mt-2 d-flex gap-2">
                             <button class="btn btn-sm ${a.isValidated ? "btn-outline-warning" : "btn-outline-success"}" data-toggle-avis="${a.id}" data-validated="${a.isValidated ? "1" : "0"}">${a.isValidated ? "Retirer validation" : "Valider"}</button>
                             <button class="btn btn-sm btn-outline-secondary" data-edit-comment-avis="${a.id}">Editer commentaire</button>
@@ -348,9 +348,12 @@
                     const id = b.getAttribute("data-edit-comment-avis");
                     const commentaire = prompt("Nouveau commentaire (laisser vide pour supprimer le texte):", "");
                     if (commentaire === null) return;
+                    const noteSaisie = prompt("Nouvelle note (1-5):", "5");
+                    if (noteSaisie === null) return;
+                    const note = Number.parseInt(noteSaisie, 10);
                     await api(`http://localhost:8000/api/admin/avis/${id}`, {
                         method: "PUT",
-                        body: JSON.stringify({ commentaire }),
+                        body: JSON.stringify({ commentaire, note }),
                     });
                     afficherMessage("Commentaire mis a jour.", "text-success");
                     await chargerAvis();

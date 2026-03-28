@@ -10,6 +10,18 @@ function initCovoiturageSearch() {
 
     searchForm.addEventListener("submit", async (e) => {
         e.preventDefault();
+        await lancerRechercheAvecFiltres();
+    });
+
+    // filter button filter anwenden auf letzte ergebnisse
+    const filterBtn = document.getElementById("apply-filters");
+    if (filterBtn) {
+        filterBtn.addEventListener("click", async () => {
+            await lancerRechercheAvecFiltres();
+        });
+    }
+
+    async function lancerRechercheAvecFiltres() {
         const departure = document.getElementById("departure").value.trim();
         const destination = document.getElementById("destination").value.trim();
         const date = document.getElementById("travel-date").value;
@@ -18,55 +30,42 @@ function initCovoiturageSearch() {
             alert("Veuillez remplir tous les champs.");
             return;
         }
+
         noItineraries.classList.add("d-none");
         itinerariesContainer.classList.remove("d-none");
         itinerariesContainer.innerHTML = "<div class='text-center text-muted'>Recherche en cours…</div>";
 
         try {
-            const params = new URLSearchParams({ departure, destination, date }).toString();
-            const res = await fetch(`http://localhost:8000/api/trajet/search?${params}`);
+            const ecological = document.getElementById("filter-ecological")?.value || "all";
+            const maxPrice = parseFloat(document.getElementById("filter-price")?.value || "");
+            const maxDuration = parseFloat(document.getElementById("filter-duration")?.value || "");
+            const minRating = parseFloat(document.getElementById("filter-rating")?.value || "");
+
+            const params = new URLSearchParams({ departure, destination, date });
+            if (ecological === "ecological") {
+                params.set("ecoOnly", "1");
+            }
+            if (!Number.isNaN(maxPrice)) {
+                params.set("maxPrice", String(maxPrice));
+            }
+            if (!Number.isNaN(maxDuration)) {
+                params.set("maxDuration", String(maxDuration));
+            }
+            if (!Number.isNaN(minRating)) {
+                params.set("minRating", String(minRating));
+            }
+
+            const res = await fetch(`http://localhost:8000/api/trajet/search?${params.toString()}`);
             if (!res.ok) throw new Error("Erreur lors de la recherche.");
 
-            let trajets = await res.json();
-            lastResults = trajets; // speichere für filter
-            renderItineraries(trajets);
+            const trajets = await res.json();
+            lastResults = Array.isArray(trajets) ? trajets : [];
+            renderItineraries(lastResults);
         } catch (e) {
             itinerariesContainer.innerHTML = "";
             noItineraries.textContent = "Erreur lors de la recherche.";
             noItineraries.classList.remove("d-none");
         }
-    });
-
-    // filter button filter anwenden auf letzte ergebnisse
-    const filterBtn = document.getElementById("apply-filters");
-    if (filterBtn) {
-        filterBtn.addEventListener("click", () => {
-            if (!lastResults.length) return;
-            let filtered = [...lastResults];
-
-            // Ecologique filter
-            const ecological = document.getElementById("filter-ecological").value;
-            if (ecological === "ecological") {
-                filtered = filtered.filter(t => t.eco);
-            }
-            // preis filter
-            const maxPrice = parseFloat(document.getElementById("filter-price").value);
-            if (!isNaN(maxPrice)) {
-                filtered = filtered.filter(t => t.prix <= maxPrice);
-            }
-            // dauer filter (stunden)
-            const maxDuration = parseFloat(document.getElementById("filter-duration").value);
-            if (!isNaN(maxDuration)) {
-                filtered = filtered.filter(t => calcDurationInHours(t.departAt, t.arriveeAt) <= maxDuration);
-            }
-            // bewertung filter
-            const minRating = parseFloat(document.getElementById("filter-rating").value);
-            if (!isNaN(minRating)) {
-                filtered = filtered.filter(t => (t.rating ?? 5) >= minRating);
-            }
-
-            renderItineraries(filtered);
-        });
     }
 }
 

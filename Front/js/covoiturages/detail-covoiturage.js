@@ -271,6 +271,7 @@
 
             const pseudo = (document.getElementById("avisTrajetPseudo")?.value ?? "").trim();
             const commentaire = (document.getElementById("avisTrajetCommentaire")?.value ?? "").trim();
+            const note = Number.parseInt((document.getElementById("avisTrajetNote")?.value ?? "5"), 10);
 
             if (!pseudo || !commentaire) {
                 afficherMessageAvis("Pseudo et commentaire sont obligatoires.", "text-danger");
@@ -287,6 +288,7 @@
                     body: JSON.stringify({
                         pseudo,
                         commentaire,
+                        note,
                         trajetId: Number.parseInt(idTrajetCourant, 10),
                     }),
                 });

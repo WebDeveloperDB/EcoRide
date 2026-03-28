@@ -575,6 +575,7 @@ class AdminController extends AbstractController
             'id' => $a->getId(),
             'pseudo' => $a->getPseudo(),
             'commentaire' => $a->getCommentaire(),
+            'note' => $a->getNote(),
             'isValidated' => $a->isValidated(),
             'createdAt' => $a->getCreatedAt()?->format(DATE_ATOM),
             'trajetId' => $a->getTrajet()?->getId(),
@@ -607,6 +608,9 @@ class AdminController extends AbstractController
         }
         if (array_key_exists('isValidated', $payload)) {
             $avis->setValidated((bool) $payload['isValidated']);
+        }
+        if (array_key_exists('note', $payload)) {
+            $avis->setNote((int) $payload['note']);
         }
 
         $entityManager->flush();

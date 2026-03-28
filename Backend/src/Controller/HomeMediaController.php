@@ -11,11 +11,14 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class HomeMediaController extends AbstractController
 {
-    private const ALLOWED_SLOTS = [
+    private const ALLOWED_IMAGE_SLOTS = [
         'hero',
         'step1',
         'step2',
         'step3',
+        'advantage1',
+        'advantage2',
+        'advantage3',
     ];
 
     private const DEFAULT_MEDIA = [
@@ -23,6 +26,22 @@ class HomeMediaController extends AbstractController
         'step1' => '/EcoRide/Front/images/covoiturage.jpg',
         'step2' => '/EcoRide/Front/images/media.media.379286f2-cbf6-49d3-bfd8-e3eaf2f1298c.original700.jpg',
         'step3' => '/EcoRide/Front/images/kostenlose-fahrgemeinschaft-plattform-fuer-den-gewerbepark-regensburg_960x540.jpg',
+        'advantage1' => '/EcoRide/Front/images/covoiturage.jpg',
+        'advantage2' => '/EcoRide/Front/images/émissions.jpg',
+        'advantage3' => '/EcoRide/Front/images/communauté.jpg',
+        'step1Title' => '1. Recherchez',
+        'step1Description' => "Entrez votre lieu de départ et d'arrivée pour trouver des trajets adaptés.",
+        'step2Title' => '2. Réservez',
+        'step2Description' => 'Sélectionnez un covoiturage, réservez votre place, contactez le conducteur.',
+        'step3Title' => '3. Voyagez',
+        'step3Description' => 'Partagez un trajet, faites des économies et réduisez votre impact écologique.',
+        'advantagesTitle' => 'Vos avantages avec EcoRide',
+        'advantage1Title' => "Économisez de l'argent",
+        'advantage1Description' => 'Partagez vos trajets et réduisez vos frais de déplacement.',
+        'advantage2Title' => "Moins d'émissions",
+        'advantage2Description' => 'Réduisez le CO₂ et agissez concrètement pour la planète.',
+        'advantage3Title' => 'Rejoignez la communauté',
+        'advantage3Description' => 'Faites de nouvelles rencontres et échangez avec des membres engagés.',
     ];
 
     #[Route('/api/home/media', name: 'home_media_get', methods: ['GET'])]
@@ -39,7 +58,7 @@ class HomeMediaController extends AbstractController
             return $admin;
         }
 
-        if (!in_array($slot, self::ALLOWED_SLOTS, true)) {
+        if (!in_array($slot, self::ALLOWED_IMAGE_SLOTS, true)) {
             return $this->json(['message' => 'Slot image invalide.'], 400);
         }
 
@@ -61,6 +80,40 @@ class HomeMediaController extends AbstractController
             'message' => 'Image accueil mise a jour.',
             'slot' => $slot,
             'url' => $url,
+            'media' => $config,
+        ]);
+    }
+
+    #[Route('/api/admin/home/content/{key}', name: 'admin_home_content_update', methods: ['PUT'])]
+    public function updateHomeText(string $key, Request $request): JsonResponse
+    {
+        $admin = $this->requireAdmin();
+        if ($admin instanceof JsonResponse) {
+            return $admin;
+        }
+
+        if (!array_key_exists($key, self::DEFAULT_MEDIA) || in_array($key, self::ALLOWED_IMAGE_SLOTS, true)) {
+            return $this->json(['message' => 'Cle de contenu invalide.'], 400);
+        }
+
+        $payload = json_decode($request->getContent(), true);
+        if (!is_array($payload)) {
+            return $this->json(['message' => 'Corps JSON invalide.'], 400);
+        }
+
+        $value = trim((string) ($payload['value'] ?? ''));
+        if ($value === '') {
+            return $this->json(['message' => 'Le texte ne peut pas etre vide.'], 400);
+        }
+
+        $config = $this->loadConfig();
+        $config[$key] = $value;
+        $this->saveConfig($config);
+
+        return $this->json([
+            'message' => 'Texte accueil mis a jour.',
+            'key' => $key,
+            'value' => $value,
             'media' => $config,
         ]);
     }
