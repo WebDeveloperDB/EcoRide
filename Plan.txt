@@ -75,15 +75,20 @@ Fait dans ce bloc
 	- variables env Mongo harmonisees (MONGODB_URL, MONGODB_DB)
 	- dashboard admin: section "Statistiques MongoDB" (volumes, tendances, usage filtres, dernieres recherches)
 	- endpoint API: GET /api/admin/stats/mongo
+	- page admin dediee MongoDB: /EcoRide/Front/admin-mongo-stats (acces ROLE_ADMIN)
+	- bloc Mongo retire du dashboard admin principal
+- Contact & mentions legales (28.03):
+	- route SPA /EcoRide/Front/contact + page contact + script front
+	- route SPA /EcoRide/Front/mentions-legales + page mentions legales
+	- lien footer corrige vers route mentions legales
 
 Reste a faire
-- Contact page + mentions legales finales
 - Tests fonctionnels complets frontend/backend
 
 Ordre propose (suite)
 1. Stabilisation bloc admin + accueil + mongo (tests manuels + corrections UX)
-2. Contact page + mentions legales finales
-3. Finitions, dashboard analytics Mongo et recette complete
+2. Dashboard analytics Mongo (graphiques) + finitions UX
+3. Recette complete frontend/backend
 
 Regle suivi
 - Mettre a jour ce fichier Plan.txt a chaque etape terminee.

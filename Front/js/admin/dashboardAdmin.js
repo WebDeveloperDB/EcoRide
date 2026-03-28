@@ -9,10 +9,6 @@
 
     const zoneMessage = document.getElementById("adminMessage");
     const zoneStats = document.getElementById("adminStats");
-    const zoneMongoStats = document.getElementById("adminMongoStats");
-    const zoneMongoDaily = document.getElementById("adminMongoDailySearches");
-    const zoneMongoFilters = document.getElementById("adminMongoFilterUsage");
-    const zoneMongoLatest = document.getElementById("adminMongoLatestSearches");
     const zoneUsers = document.getElementById("adminUsersList");
     const zoneVehicules = document.getElementById("adminVehiculesList");
     const zoneTrajets = document.getElementById("adminTrajetsList");
@@ -47,7 +43,6 @@
     async function chargerTout() {
         await Promise.all([
             chargerStats(),
-            chargerStatsMongo(),
             chargerUsers(),
             chargerVehicules(),
             chargerTrajets(),
@@ -89,60 +84,6 @@
             `).join("");
         } catch (error) {
             afficherMessage("Erreur stats: " + error.message, "text-danger");
-        }
-    }
-
-    async function chargerStatsMongo() {
-        try {
-            const stats = await api("http://localhost:8000/api/admin/stats/mongo");
-
-            if (zoneMongoStats) {
-                const cartes = [
-                    ["Search events", stats.searchEventsTotal],
-                    ["Avg results/search", stats.avgResultsPerSearch],
-                    ["Avg rating seen", stats.avgRatingSeen],
-                    ["Admin snapshots", stats.adminSnapshotsTotal],
-                ];
-
-                zoneMongoStats.innerHTML = cartes.map(([label, value]) => `
-                    <div class="col-6 col-md-3">
-                        <div class="border rounded p-2 text-center h-100">
-                            <div class="small text-muted">${label}</div>
-                            <div class="h5 mb-0">${value ?? 0}</div>
-                        </div>
-                    </div>
-                `).join("");
-            }
-
-            if (zoneMongoDaily) {
-                const daily = Array.isArray(stats.dailySearches) ? stats.dailySearches : [];
-                zoneMongoDaily.innerHTML = daily.length
-                    ? daily.slice(-10).map((row) => `<span class="badge text-bg-light me-1 mb-1">${row.date}: ${row.count}</span>`).join("")
-                    : "Aucune donnee quotidienne.";
-            }
-
-            if (zoneMongoFilters) {
-                const usage = stats.filterUsage || {};
-                zoneMongoFilters.innerHTML = `
-                    <span class="badge text-bg-secondary me-1 mb-1">ecoOnly: ${usage.ecoOnly ?? 0}</span>
-                    <span class="badge text-bg-secondary me-1 mb-1">maxPrice: ${usage.maxPrice ?? 0}</span>
-                    <span class="badge text-bg-secondary me-1 mb-1">maxDuration: ${usage.maxDuration ?? 0}</span>
-                    <span class="badge text-bg-secondary me-1 mb-1">minRating: ${usage.minRating ?? 0}</span>
-                `;
-            }
-
-            if (zoneMongoLatest) {
-                const latest = Array.isArray(stats.latestSearches) ? stats.latestSearches : [];
-                zoneMongoLatest.innerHTML = latest.length
-                    ? latest.map((item) => {
-                        const quand = item.createdAt ? new Date(item.createdAt).toLocaleString("fr-FR") : "-";
-                        const fromTo = `${item.departure || "?"} -> ${item.destination || "?"}`;
-                        return `<div class="border rounded p-2 mb-2"><strong>${fromTo}</strong><br><span class="text-muted">${quand} | resultats: ${item.resultsCount ?? 0} | user: ${item.userEmail || "anonyme"}</span></div>`;
-                    }).join("")
-                    : "Aucune recherche recente.";
-            }
-        } catch (error) {
-            afficherMessage("Erreur stats Mongo: " + error.message, "text-danger");
         }
     }
 

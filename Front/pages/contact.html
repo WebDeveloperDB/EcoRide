@@ -1,0 +1,53 @@
+<div class="hero-scene text-center text-white">
+    <div class="hero-scene-content">
+        <h1>Contact</h1>
+    </div>
+</div>
+
+<div class="container py-4">
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h2 class="h5 text-success">Nous contacter</h2>
+                    <p class="text-muted">Une question sur un trajet, un compte ou un avis ? Ecrivez-nous.</p>
+
+                    <form id="contactForm" class="row g-3">
+                        <div class="col-12">
+                            <label for="contactName" class="form-label">Nom</label>
+                            <input id="contactName" class="form-control" type="text" required>
+                        </div>
+                        <div class="col-12">
+                            <label for="contactEmail" class="form-label">Email</label>
+                            <input id="contactEmail" class="form-control" type="email" required>
+                        </div>
+                        <div class="col-12">
+                            <label for="contactSubject" class="form-label">Sujet</label>
+                            <input id="contactSubject" class="form-control" type="text" required>
+                        </div>
+                        <div class="col-12">
+                            <label for="contactMessage" class="form-label">Message</label>
+                            <textarea id="contactMessage" class="form-control" rows="5" required></textarea>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-success">Envoyer</button>
+                        </div>
+                    </form>
+
+                    <div id="contactFeedback" class="pt-3"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h2 class="h5 text-success">Informations</h2>
+                    <p class="mb-2"><strong>Email support:</strong> contact@ecoride.com</p>
+                    <p class="mb-2"><strong>Horaires:</strong> Lundi - Vendredi, 09:00 - 18:00</p>
+                    <p class="mb-0"><strong>Adresse:</strong> 12 Rue de la Mobilite, 75000 Paris</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
