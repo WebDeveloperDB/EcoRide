@@ -24,7 +24,7 @@ const LoadContentPage = async () => {
     if (allRolesArray.includes("disconnected")) {
       const connected = window.isConnected ? window.isConnected() : false;
       if (connected) {
-        window.location.replace(basePath + "/");
+        window.location.replace(basePath + "/account");
         return;
       }
     } else {
@@ -41,6 +41,15 @@ const LoadContentPage = async () => {
         window.location.replace(basePath + "/");
         return;
       }
+    }
+  }
+
+  if (actualRoute.url === basePath + "/creer-trajet") {
+    const typeUtilisateur = localStorage.getItem("typeUtilisateur");
+    const estChauffeur = typeUtilisateur === "chauffeur" || typeUtilisateur === "les_deux";
+    if (!estChauffeur) {
+      window.location.replace(basePath + "/account");
+      return;
     }
   }
 
