@@ -12,6 +12,7 @@ Backend/.env.local
 Backend/.env.local.php
 Backend/.env.*.local
 Backend/public/bundles/
+Backend/public/uploads/
 
 # IDE
 .idea/
