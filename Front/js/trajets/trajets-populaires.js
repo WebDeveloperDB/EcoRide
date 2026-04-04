@@ -5,6 +5,12 @@ function initTrajetsPopulaires() {
 }
 
 const URL_DETAIL_COVOITURAGE = `${window.location.origin}/EcoRide/Front/covoiturage-detail`;
+const escapeHtml = (value) => String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 
 async function chargerTrajetsPopulaires(div, max = 4) {
     div.innerHTML = "<div class='text-center text-muted'>Chargement…</div>";
@@ -22,16 +28,16 @@ async function chargerTrajetsPopulaires(div, max = 4) {
                 <div class="card shadow-sm h-100">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
-                            ${t.driverPhoto ? `<img src="${t.driverPhoto}" alt="Conducteur" class="rounded-circle me-3 object-fit-cover" width="50" height="50">` : ""}
-                            ${t.carPhoto ? `<img src="${t.carPhoto}" alt="Véhicule" class="rounded me-3 object-fit-cover" width="50" height="50">` : ""}
+                            ${t.driverPhoto ? `<img src="${escapeHtml(t.driverPhoto)}" alt="Conducteur" class="rounded-circle me-3 object-fit-cover" width="50" height="50">` : ""}
+                            ${t.carPhoto ? `<img src="${escapeHtml(t.carPhoto)}" alt="Véhicule" class="rounded me-3 object-fit-cover" width="50" height="50">` : ""}
                             <div>
-                                <h6 class="mb-0">${t.driverName || "Conducteur"}</h6>
-                                <small class="text-success">${t.vehicle || "Véhicule"} • ${t.placesLibres} places libres</small>
+                                <h6 class="mb-0">${escapeHtml(t.driverName || "Conducteur")}</h6>
+                                <small class="text-success">${escapeHtml(t.vehicle || "Véhicule")} • ${escapeHtml(t.placesLibres)} places libres</small>
                             </div>
                         </div>
-                        <p class="mb-1">${t.depart} → ${t.destination} ${t.eco ? '<span class="badge bg-success">Écologique</span>' : '<span class="badge bg-secondary">Classique</span>'}</p>
-                        <p class="mb-1">${formatTrajetDates(t.departAt, t.arriveeAt)}</p>
-                        <p class="mb-2"><strong>${t.prix} €</strong></p>
+                        <p class="mb-1">${escapeHtml(t.depart)} → ${escapeHtml(t.destination)} ${t.eco ? '<span class="badge bg-success">Écologique</span>' : '<span class="badge bg-secondary">Classique</span>'}</p>
+                        <p class="mb-1">${escapeHtml(formatTrajetDates(t.departAt, t.arriveeAt))}</p>
+                        <p class="mb-2"><strong>${escapeHtml(t.prix)} €</strong></p>
                         <a href="${URL_DETAIL_COVOITURAGE}?id=${encodeURIComponent(t.id)}" class="btn btn-outline-success btn-sm">Détails</a>
                         ${construireActionsAdmin(t)}
                     </div>

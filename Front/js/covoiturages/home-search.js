@@ -1,4 +1,10 @@
 const URL_DETAIL_COVOITURAGE = `${window.location.origin}/EcoRide/Front/covoiturage-detail`;
+const escapeHtml = (value) => String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 
 function initHomeSearch() {
     const searchForm = document.getElementById("search-form");
@@ -40,13 +46,13 @@ function initHomeSearch() {
                 <div class="card mb-3 shadow-sm">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-2">
-                            ${t.driverPhoto ? `<img src="${t.driverPhoto}" alt="Conducteur" class="rounded-circle me-2 object-fit-cover" width="36" height="36">` : ""}
-                            <strong>${t.driverName || "Conducteur"}</strong>
+                            ${t.driverPhoto ? `<img src="${escapeHtml(t.driverPhoto)}" alt="Conducteur" class="rounded-circle me-2 object-fit-cover" width="36" height="36">` : ""}
+                            <strong>${escapeHtml(t.driverName || "Conducteur")}</strong>
                             <span class="badge bg-success ms-2">${t.eco ? "Écologique" : ""}</span>
                         </div>
-                        <p class="mb-1">${t.depart} → ${t.destination}</p>
-                        <p class="mb-1">${formatTrajetDates(t.departAt, t.arriveeAt)}</p>
-                        <p class="mb-1"><strong>${t.prix} €</strong></p>
+                        <p class="mb-1">${escapeHtml(t.depart)} → ${escapeHtml(t.destination)}</p>
+                        <p class="mb-1">${escapeHtml(formatTrajetDates(t.departAt, t.arriveeAt))}</p>
+                        <p class="mb-1"><strong>${escapeHtml(t.prix)} €</strong></p>
                         <a href="${URL_DETAIL_COVOITURAGE}?id=${encodeURIComponent(t.id)}" class="btn btn-outline-success btn-sm">Voir détails</a>
                         ${construireActionsAdminAccueil(t)}
                     </div>

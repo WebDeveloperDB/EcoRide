@@ -3,6 +3,13 @@
 const token = typeof window.getToken === "function" ? window.getToken() : null;
 const role = typeof window.getRole === "function" ? window.getRole() : null;
 
+const escapeHtml = (value) => String(value ?? "")
+  .replace(/&/g, "&amp;")
+  .replace(/</g, "&lt;")
+  .replace(/>/g, "&gt;")
+  .replace(/\"/g, "&quot;")
+  .replace(/'/g, "&#39;");
+
 if (!token || (role !== "ROLE_EMPLOYEE" && role !== "ROLE_ADMIN")) {
   window.location.href = "/EcoRide/Front/";
   return;
@@ -25,12 +32,12 @@ async function chargerAvisEnAttente() {
   div.innerHTML = avis.map(a => `
     <div class="card mb-2 shadow">
       <div class="card-body">
-        <h6>${a.pseudo}</h6>
-        <p>${a.commentaire}</p>
+        <h6>${escapeHtml(a.pseudo)}</h6>
+        <p>${escapeHtml(a.commentaire)}</p>
         <small class="text-muted">${new Date(a.createdAt).toLocaleDateString()}</small>
         <div class="mt-2">
-          <button class="btn btn-success btn-sm me-1" onclick="validerAvis(${a.id})">Valider</button>
-          <button class="btn btn-danger btn-sm" onclick="supprimerAvis(${a.id})">Rejeter</button>
+          <button class="btn btn-success btn-sm me-1" data-action="validate" data-avis-id="${Number(a.id)}">Valider</button>
+          <button class="btn btn-danger btn-sm" data-action="reject" data-avis-id="${Number(a.id)}">Rejeter</button>
         </div>
       </div>
     </div>
@@ -73,11 +80,11 @@ async function chargerAvisValidés() {
   div.innerHTML = avis.map(a => `
     <div class="card mb-2 shadow">
       <div class="card-body">
-        <h6>${a.pseudo}</h6>
-        <p>${a.commentaire}</p>
+        <h6>${escapeHtml(a.pseudo)}</h6>
+        <p>${escapeHtml(a.commentaire)}</p>
         <small class="text-muted">${new Date(a.createdAt).toLocaleDateString()}</small>
         <div class="mt-2">
-          <button class="btn btn-danger btn-sm" onclick="supprimerAvisValidé(${a.id})">Supprimer</button>
+          <button class="btn btn-danger btn-sm" data-action="delete-validated" data-avis-id="${Number(a.id)}">Supprimer</button>
         </div>
       </div>
     </div>
@@ -103,6 +110,32 @@ function fetchWithAuth(url, options = {}) {
     },
   });
 }
+
+document.addEventListener("click", (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) {
+    return;
+  }
+
+  const actionButton = target.closest("button[data-action][data-avis-id]");
+  if (!(actionButton instanceof HTMLButtonElement)) {
+    return;
+  }
+
+  const id = Number(actionButton.dataset.avisId);
+  if (!Number.isInteger(id) || id <= 0) {
+    return;
+  }
+
+  const action = actionButton.dataset.action;
+  if (action === "validate") {
+    window.validerAvis(id);
+  } else if (action === "reject") {
+    window.supprimerAvis(id);
+  } else if (action === "delete-validated") {
+    window.supprimerAvisValidé(id);
+  }
+});
 
 chargerAvisEnAttente();
 chargerAvisValidés();
