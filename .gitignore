@@ -30,6 +30,6 @@ Thumbs.db
 # Logs
 *.log
 
-# TP / cahier de charge local documents
+# cahier de charge 
 Enoncé_TP*.pdf
 Enonce_TP*.pdf
