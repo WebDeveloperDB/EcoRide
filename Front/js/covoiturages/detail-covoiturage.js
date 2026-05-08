@@ -1,4 +1,11 @@
 (() => {
+    const escapeHtml = (value) => String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+
     const blocChargement = document.getElementById("detailTrajetChargement");
     const blocDetail = document.getElementById("detailTrajetBloc");
     const blocErreur = document.getElementById("detailTrajetErreur");
@@ -102,15 +109,15 @@
 
         const listePreferences = construirePreferences(detail.preferencesConducteur || {});
         preferences.innerHTML = listePreferences.length
-            ? listePreferences.map((ligne) => `<li>${ligne}</li>`).join("")
+            ? listePreferences.map((ligne) => `<li>${escapeHtml(ligne)}</li>`).join("")
             : "<li>Aucune préférence renseignée.</li>";
 
         const listeAvis = Array.isArray(detail.avisConducteur) ? detail.avisConducteur : [];
         avis.innerHTML = listeAvis.length
             ? listeAvis.map((unAvis) => `
                 <div class="border rounded p-2 mb-2">
-                    <strong>${unAvis.pseudo || "Utilisateur"}</strong>
-                    <p class="mb-0">${unAvis.commentaire || ""}</p>
+                    <strong>${escapeHtml(unAvis.pseudo || "Utilisateur")}</strong>
+                    <p class="mb-0">${escapeHtml(unAvis.commentaire || "")}</p>
                 </div>
             `).join("")
             : "<p class='text-muted mb-0'>Aucun avis validé pour ce conducteur.</p>";

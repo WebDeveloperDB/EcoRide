@@ -1,5 +1,11 @@
 let lastResults = [];
 const URL_DETAIL_COVOITURAGE = `${window.location.origin}/EcoRide/Front/covoiturage-detail`;
+const escapeHtml = (value) => String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 
 function initCovoiturageSearch() {
     const searchForm = document.getElementById("search-itineraries");
@@ -99,18 +105,18 @@ function renderItineraries(trajets) {
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
-                        ${t.driverPhoto ? `<img src="${t.driverPhoto}" alt="Photo du chauffeur" class="rounded-circle me-3 object-fit-cover" width="50" height="50">` : ""}
-                        ${t.carPhoto ? `<img src="${t.carPhoto}" alt="Photo de la voiture" class="rounded me-3 object-fit-cover" width="50" height="50">` : ""}
+                        ${t.driverPhoto ? `<img src="${escapeHtml(t.driverPhoto)}" alt="Photo du chauffeur" class="rounded-circle me-3 object-fit-cover" width="50" height="50">` : ""}
+                        ${t.carPhoto ? `<img src="${escapeHtml(t.carPhoto)}" alt="Photo de la voiture" class="rounded me-3 object-fit-cover" width="50" height="50">` : ""}
                         <div>
-                            <h5 class="card-title mb-0">${t.driverName || "Chauffeur"}</h5>
-                            <small class="text-muted">Note : ${(t.rating ?? "5")}/5</small>
+                            <h5 class="card-title mb-0">${escapeHtml(t.driverName || "Chauffeur")}</h5>
+                            <small class="text-muted">Note : ${escapeHtml(t.rating ?? "5")}/5</small>
                         </div>
                     </div>
-                    <p class="card-text">Départ : <strong>${t.depart}</strong> | Arrivée : <strong>${t.destination}</strong></p>
-                    <p class="card-text">Date : <strong>${formatDate(t.departAt)}</strong> | Heure : <strong>${formatHeure(t.departAt)} - ${formatHeure(t.arriveeAt)}</strong></p>
-                    <p class="card-text">Durée : <strong>${calcDurationInHours(t.departAt, t.arriveeAt).toFixed(1)}h</strong></p>
-                    <p class="card-text">Places restantes : <strong>${t.placesLibres}</strong></p>
-                    <p class="card-text">Prix : <strong>${t.prix}€</strong></p>
+                    <p class="card-text">Départ : <strong>${escapeHtml(t.depart)}</strong> | Arrivée : <strong>${escapeHtml(t.destination)}</strong></p>
+                    <p class="card-text">Date : <strong>${escapeHtml(formatDate(t.departAt))}</strong> | Heure : <strong>${escapeHtml(formatHeure(t.departAt))} - ${escapeHtml(formatHeure(t.arriveeAt))}</strong></p>
+                    <p class="card-text">Durée : <strong>${escapeHtml(calcDurationInHours(t.departAt, t.arriveeAt).toFixed(1))}h</strong></p>
+                    <p class="card-text">Places restantes : <strong>${escapeHtml(t.placesLibres)}</strong></p>
+                    <p class="card-text">Prix : <strong>${escapeHtml(t.prix)}€</strong></p>
                     <p class="card-text">Type de trajet : <strong>${t.eco ? "Écologique" : "Classique"}</strong></p>
                     <a href="${URL_DETAIL_COVOITURAGE}?id=${encodeURIComponent(t.id)}" class="btn btn-success">Détail</a>
                     ${construireActionsAdminCovoiturage(t)}
@@ -230,7 +236,7 @@ async function supprimerTrajetAdminCovoiturage(idTrajet) {
     }
 }
 
-// Init sofort aufrufen (SPA-Ready)
+
 initCovoiturageSearch();
 
 

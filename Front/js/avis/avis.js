@@ -1,3 +1,10 @@
+const escapeHtml = (value) => String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
 function initAvis() {
     const testimonialsDiv = document.getElementById("testimonials");
     if (testimonialsDiv) {
@@ -52,10 +59,10 @@ async function chargerAvis(div, max = 4) {
             <div class="col-md-4 mb-3">
                 <div class="card border-0 shadow h-100 testimonial-card">
                     <div class="card-body d-flex flex-column">
-                        <p class="fst-italic mb-3 testimonial-comment">« ${a.commentaire || ""} »</p>
+                        <p class="fst-italic mb-3 testimonial-comment">« ${escapeHtml(a.commentaire || "")} »</p>
                         <div class="d-flex align-items-center mt-auto gap-2">
-                            <span class="testimonial-avatar" aria-hidden="true">${initiale}</span>
-                            <span class="fw-bold">${pseudo}</span>
+                            <span class="testimonial-avatar" aria-hidden="true">${escapeHtml(initiale)}</span>
+                            <span class="fw-bold">${escapeHtml(pseudo)}</span>
                         </div>
                     </div>
                 </div>

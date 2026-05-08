@@ -1,4 +1,11 @@
 (() => {
+    const escapeHtml = (value) => String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+
     const formulaire = document.getElementById("profilForm");
     if (!formulaire) {
         return;
@@ -218,7 +225,7 @@
             return;
         }
 
-        zonePhotoProfilApercu.innerHTML = `<img src="${urlPhoto}" alt="Photo profil" class="rounded-circle object-fit-cover" width="72" height="72">`;
+        zonePhotoProfilApercu.innerHTML = `<img src="${escapeHtml(urlPhoto)}" alt="Photo profil" class="rounded-circle object-fit-cover" width="72" height="72">`;
     }
 
     async function chargerVehicules() {
@@ -262,9 +269,9 @@
                 <div class="card mb-2">
                     <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <div>
-                            <strong>${vehicule.marque || ""} ${vehicule.modele || ""}</strong>
-                            <div class="small text-muted">${vehicule.places} place(s)${vehicule.couleur ? ` - ${vehicule.couleur}` : ""}${vehicule.energie ? ` - ${vehicule.energie}` : ""}</div>
-                            ${vehicule.photoVehicule ? `<div class="small"><a href="${vehicule.photoVehicule}" target="_blank" rel="noopener">Voir la photo</a></div>` : ""}
+                            <strong>${escapeHtml(vehicule.marque || "")} ${escapeHtml(vehicule.modele || "")}</strong>
+                            <div class="small text-muted">${escapeHtml(vehicule.places)} place(s)${vehicule.couleur ? ` - ${escapeHtml(vehicule.couleur)}` : ""}${vehicule.energie ? ` - ${escapeHtml(vehicule.energie)}` : ""}</div>
+                            ${vehicule.photoVehicule ? `<div class="small"><a href="${escapeHtml(vehicule.photoVehicule)}" target="_blank" rel="noopener">Voir la photo</a></div>` : ""}
                         </div>
                         <div class="d-flex gap-2">
                             <button type="button" class="btn btn-sm btn-outline-secondary" data-edit-vehicule="${vehicule.id}">Modifier</button>

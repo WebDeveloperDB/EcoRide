@@ -17,6 +17,7 @@ function signout() {
     localStorage.removeItem('token');
     localStorage.removeItem('roles');
     localStorage.removeItem('email');
+    localStorage.removeItem('typeUtilisateur');
     window.location.reload();
 }
 
@@ -60,6 +61,7 @@ function isConnected() {
 function showAndHideElementsForRoles() {
     const userConnected = isConnected();
     const role = getRole(); 
+    const typeUtilisateur = localStorage.getItem("typeUtilisateur");
 
     document.querySelectorAll('[data-show]').forEach(element => {
         
@@ -93,12 +95,47 @@ function showAndHideElementsForRoles() {
         }
 
         
+        if (show && element.dataset.showDriver === 'true') {
+            const estChauffeur = typeUtilisateur === 'chauffeur' || typeUtilisateur === 'les_deux';
+            show = userConnected && estChauffeur;
+        }
+
         if (show) {
             element.classList.remove("d-none");
         } else {
             element.classList.add("d-none");
         }
     });
+}
+
+async function synchroniserTypeUtilisateur() {
+    const token = getToken();
+    if (!token) {
+        localStorage.removeItem("typeUtilisateur");
+        return;
+    }
+
+    try {
+        const response = await fetch("http://localhost:8000/api/utilisateur/profil", {
+            method: "GET",
+            headers: {
+                "X-AUTH-TOKEN": token,
+            },
+        });
+
+        if (!response.ok) {
+            return;
+        }
+
+        const profil = await response.json().catch(() => ({}));
+        localStorage.setItem("typeUtilisateur", profil.typeUtilisateur || "");
+
+        if (window.showAndHideElementsForRoles) {
+            window.showAndHideElementsForRoles();
+        }
+    } catch (error) {
+        console.error("Erreur sync type utilisateur:", error);
+    }
 }
 
 
@@ -286,6 +323,9 @@ function initialiserAuthDeleguee() {
                 localStorage.setItem("token", resultat.apiToken);
                 localStorage.setItem("roles", JSON.stringify(roles));
                 localStorage.setItem("email", resultat.user || email);
+                localStorage.removeItem("typeUtilisateur");
+
+                await synchroniserTypeUtilisateur();
 
                 window.location.href = "/EcoRide/Front/";
             } catch (erreur) {
@@ -308,8 +348,10 @@ window.eraseCookie = eraseCookie;
 window.showAndHideElementsForRoles = showAndHideElementsForRoles;
 window.sanitizeHtml = sanitizeHtml;
 window.getRoleLePlusHaut = getRoleLePlusHaut;
+window.synchroniserTypeUtilisateur = synchroniserTypeUtilisateur;
 
 initialiserAuthDeleguee();
+synchroniserTypeUtilisateur();
 
 function getInfosUser(){
     let myHeaders = new Headers();

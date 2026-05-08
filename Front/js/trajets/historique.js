@@ -1,4 +1,11 @@
 (() => {
+    const escapeHtml = (value) => String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+
     const zoneParticipations = document.getElementById("historiqueParticipations");
     const zoneTrajetsConducteur = document.getElementById("historiqueTrajetsConducteur");
     const zoneMessage = document.getElementById("historiqueMessage");
@@ -79,11 +86,11 @@
             return `
                 <div class="col-12 col-lg-6">
                     <div class="border rounded p-3 h-100">
-                        <p class="mb-1"><strong>Trajet:</strong> ${trajet.depart || "?"} -> ${trajet.destination || "?"}</p>
-                        <p class="mb-1"><strong>Date:</strong> ${dateDepart} (${heureDepart} - ${heureArrivee})</p>
-                        <p class="mb-1"><strong>Conducteur:</strong> ${trajet.driverName || "-"}</p>
-                        <p class="mb-1"><strong>Credits utilises:</strong> ${participation.creditsUtilises ?? "-"}</p>
-                        <p class="mb-2"><strong>Participation:</strong> ${formaterDateHeure(participation.joinedAt)}</p>
+                        <p class="mb-1"><strong>Trajet:</strong> ${escapeHtml(trajet.depart || "?")} -> ${escapeHtml(trajet.destination || "?")}</p>
+                        <p class="mb-1"><strong>Date:</strong> ${escapeHtml(dateDepart)} (${escapeHtml(heureDepart)} - ${escapeHtml(heureArrivee)})</p>
+                        <p class="mb-1"><strong>Conducteur:</strong> ${escapeHtml(trajet.driverName || "-")}</p>
+                        <p class="mb-1"><strong>Credits utilises:</strong> ${escapeHtml(participation.creditsUtilises ?? "-")}</p>
+                        <p class="mb-2"><strong>Participation:</strong> ${escapeHtml(formaterDateHeure(participation.joinedAt))}</p>
                         <div class="d-flex gap-2">
                             <a class="btn btn-outline-success btn-sm" href="/EcoRide/Front/covoiturage-detail?id=${encodeURIComponent(trajet.id || "")}">Voir detail</a>
                             ${participation.canCancel ? `<button class="btn btn-outline-danger btn-sm" data-annuler-participation="${participation.participationId}">Annuler ma participation</button>` : "<span class='badge text-bg-secondary align-self-center'>Non annulable</span>"}
@@ -121,11 +128,11 @@
             return `
                 <div class="col-12 col-lg-6">
                     <div class="border rounded p-3 h-100">
-                        <p class="mb-1"><strong>Trajet:</strong> ${trajet.depart || "?"} -> ${trajet.destination || "?"}</p>
-                        <p class="mb-1"><strong>Date:</strong> ${dateDepart} (${heureDepart} - ${heureArrivee})</p>
-                        <p class="mb-1"><strong>Prix:</strong> ${trajet.prix ?? "-"} €</p>
-                        <p class="mb-1"><strong>Places libres:</strong> ${trajet.placesLibres ?? "-"}</p>
-                        <p class="mb-2"><strong>Participants:</strong> ${trajet.participants ?? 0}</p>
+                        <p class="mb-1"><strong>Trajet:</strong> ${escapeHtml(trajet.depart || "?")} -> ${escapeHtml(trajet.destination || "?")}</p>
+                        <p class="mb-1"><strong>Date:</strong> ${escapeHtml(dateDepart)} (${escapeHtml(heureDepart)} - ${escapeHtml(heureArrivee)})</p>
+                        <p class="mb-1"><strong>Prix:</strong> ${escapeHtml(trajet.prix ?? "-")} €</p>
+                        <p class="mb-1"><strong>Places libres:</strong> ${escapeHtml(trajet.placesLibres ?? "-")}</p>
+                        <p class="mb-2"><strong>Participants:</strong> ${escapeHtml(trajet.participants ?? 0)}</p>
                         <div class="d-flex gap-2">
                             <a class="btn btn-outline-success btn-sm" href="/EcoRide/Front/covoiturage-detail?id=${encodeURIComponent(trajet.trajetId || "")}">Voir detail</a>
                             ${trajet.canCancel ? `<button class="btn btn-outline-danger btn-sm" data-annuler-trajet="${trajet.trajetId}">Annuler le trajet</button>` : "<span class='badge text-bg-secondary align-self-center'>Non annulable</span>"}

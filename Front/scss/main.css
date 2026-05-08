@@ -23978,6 +23978,10 @@ body {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
 }
 
+.home-text-admin-btn {
+  font-size: 0.75rem;
+}
+
 .home-step-card {
   background: linear-gradient(180deg, #ffffff 0%, #f2fbf7 100%);
 }

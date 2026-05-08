@@ -1,4 +1,11 @@
 (() => {
+    const escapeHtml = (value) => String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+
     const token = typeof window.getToken === "function" ? window.getToken() : null;
     const role = typeof window.getRole === "function" ? window.getRole() : null;
 
@@ -77,8 +84,8 @@
             zoneStats.innerHTML = cartes.map(([label, value]) => `
                 <div class="col-6 col-md-3">
                     <div class="border rounded p-2 text-center h-100">
-                        <div class="small text-muted">${label}</div>
-                        <div class="h5 mb-0">${value ?? 0}</div>
+                        <div class="small text-muted">${escapeHtml(label)}</div>
+                        <div class="h5 mb-0">${escapeHtml(value ?? 0)}</div>
                     </div>
                 </div>
             `).join("");
@@ -93,7 +100,7 @@
             zoneUsers.innerHTML = users.length
                 ? users.map((u) => `
                     <div class="border rounded p-2 mb-2">
-                        <div><strong>#${u.id}</strong> ${u.pseudo} (${u.email}) - ${u.roles.join(", ")} - credits: ${u.credits}</div>
+                        <div><strong>#${escapeHtml(u.id)}</strong> ${escapeHtml(u.pseudo)} (${escapeHtml(u.email)}) - ${escapeHtml((u.roles || []).join(", "))} - credits: ${escapeHtml(u.credits)}</div>
                         <div class="small ${u.isSuspended ? "text-danger" : "text-success"}">${u.isSuspended ? "Suspendu" : "Actif"}</div>
                         <div class="mt-2 d-flex gap-2 flex-wrap">
                             <button class="btn btn-sm btn-outline-secondary" data-edit-user="${u.id}">Modifier</button>
@@ -194,7 +201,7 @@
             zoneVehicules.innerHTML = vehicules.length
                 ? vehicules.map((v) => `
                     <div class="border rounded p-2 mb-2">
-                        <div><strong>#${v.id}</strong> ${v.marque} ${v.modele} (${v.places} places) - owner #${v.ownerId} ${v.ownerPseudo || ""}</div>
+                        <div><strong>#${escapeHtml(v.id)}</strong> ${escapeHtml(v.marque)} ${escapeHtml(v.modele)} (${escapeHtml(v.places)} places) - owner #${escapeHtml(v.ownerId)} ${escapeHtml(v.ownerPseudo || "")}</div>
                         <div class="small ${v.isSuspended ? "text-danger" : "text-success"}">${v.isSuspended ? "Suspendu" : "Actif"}</div>
                         <div class="mt-2 d-flex gap-2">
                             <button class="btn btn-sm btn-outline-secondary" data-edit-vehicule="${v.id}">Modifier</button>
@@ -269,7 +276,7 @@
             zoneTrajets.innerHTML = trajets.length
                 ? trajets.map((t) => `
                     <div class="border rounded p-2 mb-2">
-                        <div><strong>#${t.id}</strong> ${t.depart} -> ${t.destination} | ${t.prix} EUR | places ${t.placesLibres}</div>
+                        <div><strong>#${escapeHtml(t.id)}</strong> ${escapeHtml(t.depart)} -> ${escapeHtml(t.destination)} | ${escapeHtml(t.prix)} EUR | places ${escapeHtml(t.placesLibres)}</div>
                         <div class="mt-2 d-flex gap-2">
                             <button class="btn btn-sm btn-outline-secondary" data-edit-trajet="${t.id}">Modifier</button>
                             <button class="btn btn-sm btn-outline-danger" data-del-trajet="${t.id}">Supprimer</button>
@@ -317,9 +324,9 @@
             zoneAvis.innerHTML = avis.length
                 ? avis.map((a) => `
                     <div class="border rounded p-2 mb-2">
-                        <div><strong>#${a.id}</strong> ${a.pseudo}</div>
-                        <p class="mb-1">${a.commentaire || "(sans commentaire)"}</p>
-                        <div class="small text-muted">note: ${a.note ?? "-"} / 5 - valide: ${a.isValidated ? "oui" : "non"}</div>
+                        <div><strong>#${escapeHtml(a.id)}</strong> ${escapeHtml(a.pseudo)}</div>
+                        <p class="mb-1">${escapeHtml(a.commentaire || "(sans commentaire)")}</p>
+                        <div class="small text-muted">note: ${escapeHtml(a.note ?? "-")} / 5 - valide: ${a.isValidated ? "oui" : "non"}</div>
                         <div class="mt-2 d-flex gap-2">
                             <button class="btn btn-sm ${a.isValidated ? "btn-outline-warning" : "btn-outline-success"}" data-toggle-avis="${a.id}" data-validated="${a.isValidated ? "1" : "0"}">${a.isValidated ? "Retirer validation" : "Valider"}</button>
                             <button class="btn btn-sm btn-outline-secondary" data-edit-comment-avis="${a.id}">Editer commentaire</button>
@@ -380,8 +387,8 @@
             zoneParticipations.innerHTML = participations.length
                 ? participations.map((p) => `
                     <div class="border rounded p-2 mb-2">
-                        <div><strong>#${p.id}</strong> user #${p.utilisateurId} ${p.utilisateurPseudo || ""} -> trajet #${p.trajetId} (${p.depart || "?"} -> ${p.destination || "?"})</div>
-                        <div class="small text-muted">credits: ${p.creditsUtilises}</div>
+                        <div><strong>#${escapeHtml(p.id)}</strong> user #${escapeHtml(p.utilisateurId)} ${escapeHtml(p.utilisateurPseudo || "")} -> trajet #${escapeHtml(p.trajetId)} (${escapeHtml(p.depart || "?")} -> ${escapeHtml(p.destination || "?")})</div>
+                        <div class="small text-muted">credits: ${escapeHtml(p.creditsUtilises)}</div>
                     </div>
                 `).join("")
                 : "<p class='text-muted mb-0'>Aucune participation.</p>";
