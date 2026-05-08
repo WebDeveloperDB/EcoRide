@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="/EcoRide/Front/">
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="node_modules/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="scss/main.css">
+    <title>EcoRide</title>
+</head>
+<body>
+ 
+<header>
+    <nav class="navbar navbar-expand-lg bg-success text-white fixed-top p-2 mb-lg-0">
+        <a class="navbar-brand text-white" href="/EcoRide/Front/">EcoRide</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon bg-white"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+            <li class="nav-item active text-white"><a class="nav-link text-white" href="/EcoRide/Front/">Accueil</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="/EcoRide/Front/covoiturage">Covoiturages</a></li>
+            <li class="nav-item" data-show="connected" data-show-driver="true"><a class="nav-link text-white" href="/EcoRide/Front/creer-trajet">Créer un trajet</a></li>
+            <li class="nav-item" data-show="connected"><a class="nav-link text-white" href="/EcoRide/Front/historique">Historique</a></li>
+            <li class="nav-item" data-show="admin"><a class="nav-link text-white" href="/EcoRide/Front/admin-dashboard">Admin</a></li>
+            <li class="nav-item" data-show="admin"><a class="nav-link text-white" href="/EcoRide/Front/admin-mongo-stats">Mongo Stats</a></li>
+            <li class="nav-item" data-show="disconnected"><a class="nav-link text-white" href="/EcoRide/Front/signup">Inscription</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="/EcoRide/Front/contact">Contact</a></li>
+            <li class="nav-item" data-show="connected"><a class="nav-link text-white" href="/EcoRide/Front/account">Mon compte</a></li>
+            <li class="nav-item" data-show="disconnected"><a class="nav-link text-white" href="/EcoRide/Front/signin">Connexion</a></li>
+            <li class="nav-item" data-show="connected"> <button class="nav-link text-white" id="signout-btn">Déconnexion</button></li>
+          </ul>
+        </div>
+      </nav>
+</header>
+
+      <main id="main-page"></main>
+
+   <footer class="bg-dark text-white mt-5 p-4 text-center footer">
+        <div class="container">
+            <p>&copy; 2026 EcoRide. Tous droits réservés.</p>
+            <p>Contactez-nous : <a href="mailto:contact@ecoride.com" class="text-white">contact@ecoride.com</a></p>
+            <a href="/EcoRide/Front/mentions-legales" class="text-white">Mentions légales</a>
+        </div>
+    </footer>
+
+
+    <script src="js/script.js"></script>
+    <script type="module" src="Router/router.js"></script>
+    <script src="node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

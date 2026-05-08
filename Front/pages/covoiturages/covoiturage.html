@@ -1,0 +1,61 @@
+<main id="covoiturages-page" class="container mt-5 covoiturage-form">
+    <section class="text-center mb-4">
+        <h2 class="text-success">Rechercher un covoiturage</h2>
+        <form id="search-itineraries" class="row g-3 justify-content-center">
+            <div class="col-md-4">
+                <!-- champ pour l'adresse de depart -->
+                <input id="departure" type="text" class="form-control" placeholder="Adresse de départ" required>
+            </div>
+            <div class="col-md-4">
+                <!-- champ pour l'adresse d'arrivé -->
+                <input id="destination" type="text" class="form-control" placeholder="Adresse d'arrivée" required>
+            </div>
+            <div class="col-md-3">
+                <!-- champ pour la date du voyage -->
+                <input id="travel-date" type="date" class="form-control" required>
+            </div>
+            <div class="col-md-1 p-1">
+            
+                <button id="search-button" type="submit" class="btn btn-success w-100">Rechercher</button>
+            </div>
+        </form>
+    </section>
+
+    <section id="filters" class="mb-4">
+        <h3 class="text-success">Filtres</h3>
+        <form id="filter-form" class="row g-3">
+            <div class="col-md-3">
+                <!-- filtre pour le type de trajet écologique ou tous -->
+                <label for="filter-ecological" class="form-label">Type de trajet</label>
+                <select id="filter-ecological" class="form-select">
+                    <option value="all">Tous</option>
+                    <option value="ecological">Écologique</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="filter-price" class="form-label">Prix maximum</label>
+                <input id="filter-price" type="number" class="form-control" placeholder="€">
+            </div>
+            <div class="col-md-3">
+                <label for="filter-duration" class="form-label">Durée maximum (heures)</label>
+                <input id="filter-duration" type="number" class="form-control" placeholder="Heures">
+            </div>
+            <div class="col-md-3">
+                <label for="filter-rating" class="form-label">Note minimale</label>
+                <input id="filter-rating" type="number" step="0.1" min="1" max="5" class="form-control" placeholder="1-5">
+            </div>
+            <div class="col-md-12 text-center">
+                <button id="apply-filters" type="button" class="btn btn-success">Appliquer les filtres</button>
+            </div>
+        </form>
+    </section>
+
+   <section id="itineraries-list" class="mt-5">
+    <h3 class="text-success">Résultats de recherche</h3>
+    <div id="no-itineraries" class="text-center text-muted">Aucun covoiturage trouvé. Veuillez ajuster votre recherche.</div>
+    <div id="itineraries-container" class="row mt-4 d-none">
+       
+    </div>
+</section>
+
+    </main>

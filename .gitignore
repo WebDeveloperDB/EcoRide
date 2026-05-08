@@ -4,12 +4,15 @@ Frontend/node_modules/
 Backend/vendor/
 Front/vendor/
 
+Plan.txt
+
 # Symfony
 Backend/var/
 Backend/.env.local
 Backend/.env.local.php
 Backend/.env.*.local
 Backend/public/bundles/
+Backend/public/uploads/
 
 # IDE
 .idea/
@@ -27,3 +30,7 @@ Thumbs.db
 
 # Logs
 *.log
+
+# cahier de charge 
+Enoncé_TP*.pdf
+Enonce_TP*.pdf
