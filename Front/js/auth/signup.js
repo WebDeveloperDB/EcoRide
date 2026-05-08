@@ -1,128 +1,127 @@
+(() => {
+    const champPseudo = document.getElementById("PseudoInput");
+    const champEmail = document.getElementById("EmailInput");
+    const champMotDePasse = document.getElementById("PasswordInput");
+    const champConfirmationMotDePasse = document.getElementById("ValidatePasswordInput");
+    const boutonInscription = document.getElementById("btn-validation-inscription");
+    const formulaireInscription = document.getElementById("formulaireInscription");
 
-const inputPseudo = document.getElementById("PseudoInput"); 
-const inputEmail = document.getElementById("EmailInput");
-const inputPassword = document.getElementById("PasswordInput");
-const inputVerificationPassword = document.getElementById("ValidatePasswordInput");
-const btnValidation = document.getElementById("btn-validation-inscription");
+    const apiUrlInscription = "http://localhost:8000/api/registration";
 
-
-inputPseudo.addEventListener("keyup", validateForm);
-inputEmail.addEventListener("keyup", validateForm);
-inputPassword.addEventListener("keyup", validateForm);
-inputVerificationPassword.addEventListener("keyup", validateForm);
-inputVerificationPassword.addEventListener("keyup", validateForm);
-
-
-
-function validateForm() {
-    const pseudoOk = validateRequired(inputPseudo);
-    const mailOk = validateMail(inputEmail);
-    const passwordOk = validatePassword(inputPassword);
-    const passwordConfirmOk = validateConfirmationPassword(inputPassword, inputVerificationPassword);
-
-
-    if(pseudoOk && mailOk && passwordOk && passwordConfirmOk){
-        btnValidation.disabled = false;
-    }else{
-        btnValidation.disabled = true;
+    if (!champPseudo || !champEmail || !champMotDePasse || !champConfirmationMotDePasse || !boutonInscription || !formulaireInscription) {
+        return;
     }
-}
 
-//validation mail
-function validateMail(input){
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const mailUser = input.value;
-    if (mailUser.match(emailRegex)) {
-        input.classList.add("is-valid");
-        input.classList.remove("is-invalid");
-        return true;
-    } else {
+    champPseudo.addEventListener("input", validerFormulaireInscription);
+    champEmail.addEventListener("input", validerFormulaireInscription);
+    champMotDePasse.addEventListener("input", validerFormulaireInscription);
+    champConfirmationMotDePasse.addEventListener("input", validerFormulaireInscription);
+
+    formulaireInscription.addEventListener("submit", soumettreInscription);
+    boutonInscription.addEventListener("click", (event) => {
+        event.preventDefault();
+        formulaireInscription.requestSubmit();
+    });
+
+    validerFormulaireInscription();
+
+    function validerFormulaireInscription() {
+        const pseudoOk = validerChampRequis(champPseudo);
+        const emailOk = validerEmail(champEmail);
+        const motDePasseOk = validerMotDePasse(champMotDePasse);
+        const confirmationOk = validerConfirmationMotDePasse(champMotDePasse, champConfirmationMotDePasse);
+
+        const formulaireValide = pseudoOk && emailOk && motDePasseOk && confirmationOk;
+        boutonInscription.disabled = !formulaireValide;
+
+        return formulaireValide;
+    }
+
+    function validerEmail(input) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const mailUser = input.value;
+        if (mailUser.match(emailRegex)) {
+            input.classList.add("is-valid");
+            input.classList.remove("is-invalid");
+            return true;
+        }
+
         input.classList.remove("is-valid");
         input.classList.add("is-invalid");
         return false;
     }
-}
 
-//validation password
-function validatePassword(input){
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_])[A-Za-z\d\W_]{8,}$/;
-    const passwordUser = input.value;
-    if (passwordUser.match(passwordRegex)) {
-        input.classList.add("is-valid");
-        input.classList.remove("is-invalid");
-        return true;
-    } else {
+    function validerMotDePasse(input) {
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_])[A-Za-z\d\W_]{8,}$/;
+        const passwordUser = input.value;
+        if (passwordUser.match(passwordRegex)) {
+            input.classList.add("is-valid");
+            input.classList.remove("is-invalid");
+            return true;
+        }
+
         input.classList.remove("is-valid");
         input.classList.add("is-invalid");
         return false;
     }
-}
 
-//validation les champs
-function validateRequired(input){
-    if (input.value != '') {
-        input.classList.add("is-valid");
-        input.classList.remove("is-invalid");
-        return true;
-    } else {
+    function validerChampRequis(input) {
+        if (input.value !== "") {
+            input.classList.add("is-valid");
+            input.classList.remove("is-invalid");
+            return true;
+        }
+
         input.classList.remove("is-valid");
         input.classList.add("is-invalid");
         return false;
     }
-}
 
-//confirmation password
-function validateConfirmationPassword(inputPwd, inputConfirmPwd){
-    if(inputPwd.value == inputConfirmPwd.value){
-        inputConfirmPwd.classList.add("is-valid");
-        inputConfirmPwd.classList.remove("is-invalid");
-        return true;
-    }
-    else{
+    function validerConfirmationMotDePasse(inputPwd, inputConfirmPwd) {
+        if (inputPwd.value === inputConfirmPwd.value) {
+            inputConfirmPwd.classList.add("is-valid");
+            inputConfirmPwd.classList.remove("is-invalid");
+            return true;
+        }
+
         inputConfirmPwd.classList.add("is-invalid");
         inputConfirmPwd.classList.remove("is-valid");
         return false;
     }
-}
 
-// inscription via API
-const apiUrl = "http://localhost:8000/api/registration";
-const formInscription = document.getElementById("formulaireInscription");
+    async function soumettreInscription(event) {
+        event.preventDefault();
 
-btnValidation.addEventListener("click", InscrireUtilisateur);
+        if (!validerFormulaireInscription()) {
+            alert("Le mot de passe n'est pas assez robuste : Au moins 8  caractéres, comprenant au moins 1 lettre majuscule, 1 miniscule, 1 chiffre, et 1 caractére spéciale");
+            return;
+        }
 
-function InscrireUtilisateur() {
-    let dataForm = new FormData(formInscription);
+        const dataForm = new FormData(formulaireInscription);
 
-    let myHeaders = new Headers();
-    myHeaders.append("Content-Type", "application/json");
+        const requestOptions = {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                pseudo: dataForm.get("pseudo"),
+                email: dataForm.get("email"),
+                password: dataForm.get("mdp")
+            }),
+            redirect: "follow"
+        };
 
-    let raw = JSON.stringify({
-        "pseudo": dataForm.get("pseudo"),
-        "email": dataForm.get("email"),
-        "password": dataForm.get("mdp")
-    });
+        try {
+            const response = await fetch(apiUrlInscription, requestOptions);
+            const result = await response.json().catch(() => ({}));
 
-    let requestOptions = {
-        method: "POST",
-        headers: myHeaders,
-        body: raw,
-        redirect: "follow"
-    };
-
-    fetch(apiUrl, requestOptions)
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            } else {
-                return response.text().then(text => { throw new Error(text) });
+            if (!response.ok) {
+                throw new Error(result.message || "Impossible de créer le compte.");
             }
-        })
-        .then(result => {
+
             alert("Bienvenue " + dataForm.get("pseudo") + ", vous êtes maintenant inscrit. Vous pouvez vous connecter.");
             document.location.href = "/EcoRide/Front/signin";
-        })
-        .catch(error => {
+        } catch (error) {
             alert("Erreur lors de l'inscription : " + error.message);
-        });
-}
+        }
+    }
+})();

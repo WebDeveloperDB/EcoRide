@@ -109,6 +109,127 @@ function sanitizeHtml(text){
     return tempHtml.innerHTML; 
 }
 
+function getRoleLePlusHaut(roles) {
+    let roleLePlusHaut = "ROLE_USER";
+
+    if (roles.includes("ROLE_ADMIN")) {
+        roleLePlusHaut = "ROLE_ADMIN";
+    } else if (roles.includes("ROLE_EMPLOYEE")) {
+        roleLePlusHaut = "ROLE_EMPLOYEE";
+    }
+
+    return roleLePlusHaut;
+}
+
+function formulaireInscriptionValide(formulaire) {
+    const pseudo = (formulaire.querySelector("#PseudoInput")?.value ?? "").trim();
+    const email = (formulaire.querySelector("#EmailInput")?.value ?? "").trim();
+    const motDePasse = formulaire.querySelector("#PasswordInput")?.value ?? "";
+    const confirmation = formulaire.querySelector("#ValidatePasswordInput")?.value ?? "";
+
+    const emailValide = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const motDePasseValide = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_])[A-Za-z\d\W_]{8,}$/.test(motDePasse);
+
+    return pseudo !== "" && emailValide && motDePasseValide && motDePasse === confirmation;
+}
+
+function initialiserAuthDeleguee() {
+    document.addEventListener("submit", async (event) => {
+        const formulaire = event.target;
+        if (!(formulaire instanceof HTMLFormElement)) {
+            return;
+        }
+
+        if (formulaire.id === "formulaireInscription") {
+            event.preventDefault();
+
+            if (formulaire.dataset.enCours === "1") {
+                return;
+            }
+
+            if (!formulaireInscriptionValide(formulaire)) {
+                alert("Merci de corriger les champs du formulaire avant de continuer.");
+                return;
+            }
+
+            formulaire.dataset.enCours = "1";
+
+            const dataForm = new FormData(formulaire);
+
+            try {
+                const response = await fetch("http://localhost:8000/api/registration", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        pseudo: dataForm.get("pseudo"),
+                        email: dataForm.get("email"),
+                        password: dataForm.get("mdp")
+                    })
+                });
+
+                const resultat = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(resultat.message || "Impossible de créer le compte.");
+                }
+
+                alert("Inscription réussie. Vous pouvez vous connecter.");
+                window.location.href = "/EcoRide/Front/signin";
+            } catch (erreur) {
+                alert("Erreur lors de l'inscription : " + erreur.message);
+            } finally {
+                delete formulaire.dataset.enCours;
+            }
+        }
+
+        if (formulaire.id === "signinForm") {
+            event.preventDefault();
+
+            if (formulaire.dataset.enCours === "1") {
+                return;
+            }
+
+            const email = (formulaire.querySelector("#EmailInput")?.value ?? "").trim();
+            const motDePasse = formulaire.querySelector("#PasswordInput")?.value ?? "";
+
+            if (!email || !motDePasse) {
+                alert("Merci de renseigner l'email et le mot de passe.");
+                return;
+            }
+
+            formulaire.dataset.enCours = "1";
+
+            try {
+                const response = await fetch("http://localhost:8000/api/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password: motDePasse })
+                });
+
+                const resultat = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(resultat.message || "Connexion impossible.");
+                }
+
+                const roles = resultat.roles || ["ROLE_USER"];
+                const roleLePlusHaut = getRoleLePlusHaut(roles);
+
+                setToken(resultat.apiToken);
+                setCookie("role", roleLePlusHaut, 7, "/");
+
+                localStorage.setItem("token", resultat.apiToken);
+                localStorage.setItem("roles", JSON.stringify(roles));
+                localStorage.setItem("email", resultat.user || email);
+
+                window.location.href = "/EcoRide/Front/";
+            } catch (erreur) {
+                alert("Erreur de connexion : " + erreur.message);
+            } finally {
+                delete formulaire.dataset.enCours;
+            }
+        }
+    });
+}
+
 
 window.getRole = getRole;
 window.isConnected = isConnected;
@@ -119,6 +240,9 @@ window.setCookie = setCookie;
 window.eraseCookie = eraseCookie;
 window.showAndHideElementsForRoles = showAndHideElementsForRoles;
 window.sanitizeHtml = sanitizeHtml;
+window.getRoleLePlusHaut = getRoleLePlusHaut;
+
+initialiserAuthDeleguee();
 
 function getInfosUser(){
     let myHeaders = new Headers();
