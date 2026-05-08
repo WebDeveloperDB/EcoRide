@@ -1,4 +1,13 @@
 
+(() => {
+const token = typeof window.getToken === "function" ? window.getToken() : null;
+const role = typeof window.getRole === "function" ? window.getRole() : null;
+
+if (!token || (role !== "ROLE_EMPLOYEE" && role !== "ROLE_ADMIN")) {
+  window.location.href = "/EcoRide/Front/";
+  return;
+}
+
 async function chargerAvisEnAttente() {
   const div = document.getElementById("pending-avis-list");
   if (!div) return;
@@ -85,12 +94,11 @@ window.supprimerAvisValidé = async function(id) {
 };
 
 function fetchWithAuth(url, options = {}) {
-  const token = getToken();
   return fetch(url, {
     ...options,
     headers: {
       ...options.headers,
-      "Authorization": `Bearer ${token}`,
+      "X-AUTH-TOKEN": token,
       "Content-Type": "application/json",
     },
   });
@@ -98,3 +106,4 @@ function fetchWithAuth(url, options = {}) {
 
 chargerAvisEnAttente();
 chargerAvisValidés();
+})();

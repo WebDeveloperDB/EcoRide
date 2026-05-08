@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UtilisateurRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -33,12 +35,28 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private int $credits = 20;
 
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $typeUtilisateur = null;
+
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $preferences = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $photoProfil = null;
+
+    #[ORM\Column]
+    private bool $isSuspended = false;
+
     #[ORM\Column(name: 'token_api', length: 64, nullable: false)]
     private ?string $apiToken = null;
+
+    #[ORM\OneToMany(mappedBy: 'utilisateur', targetEntity: Vehicule::class, orphanRemoval: true)]
+    private Collection $vehicules;
 
     public function __construct()
     {
         $this->apiToken = bin2hex(random_bytes(32));
+        $this->vehicules = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -127,6 +145,81 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     public function setApiToken(string $apiToken): static
     {
         $this->apiToken = $apiToken;
+
+        return $this;
+    }
+
+    public function getTypeUtilisateur(): ?string
+    {
+        return $this->typeUtilisateur;
+    }
+
+    public function setTypeUtilisateur(?string $typeUtilisateur): static
+    {
+        $this->typeUtilisateur = $typeUtilisateur;
+
+        return $this;
+    }
+
+    public function getPreferences(): ?array
+    {
+        return $this->preferences;
+    }
+
+    public function setPreferences(?array $preferences): static
+    {
+        $this->preferences = $preferences;
+
+        return $this;
+    }
+
+    public function getPhotoProfil(): ?string
+    {
+        return $this->photoProfil;
+    }
+
+    public function setPhotoProfil(?string $photoProfil): static
+    {
+        $this->photoProfil = $photoProfil;
+
+        return $this;
+    }
+
+    public function isSuspended(): bool
+    {
+        return $this->isSuspended;
+    }
+
+    public function setSuspended(bool $isSuspended): static
+    {
+        $this->isSuspended = $isSuspended;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Vehicule>
+     */
+    public function getVehicules(): Collection
+    {
+        return $this->vehicules;
+    }
+
+    public function addVehicule(Vehicule $vehicule): static
+    {
+        if (!$this->vehicules->contains($vehicule)) {
+            $this->vehicules->add($vehicule);
+            $vehicule->setUtilisateur($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVehicule(Vehicule $vehicule): static
+    {
+        if ($this->vehicules->removeElement($vehicule) && $vehicule->getUtilisateur() === $this) {
+            $vehicule->setUtilisateur(null);
+        }
 
         return $this;
     }

@@ -3,7 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\Avis;
+use App\Entity\Utilisateur;
+use App\Repository\TrajetRepository;
 use App\Repository\AvisRepository;
+use App\Repository\ParticipationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -14,22 +17,70 @@ use Symfony\Component\Routing\Annotation\Route;
 class AvisController extends AbstractController
 {
     #[Route('', name: 'create_avis', methods: ['POST'])]
-    public function createAvis(Request $request, EntityManagerInterface $em): JsonResponse
+    public function createAvis(
+        Request $request,
+        EntityManagerInterface $em,
+        TrajetRepository $trajetRepository,
+        ParticipationRepository $participationRepository
+    ): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
-        if (
-            !isset($data['pseudo']) || empty(trim($data['pseudo'])) ||
-            !isset($data['commentaire']) || empty(trim($data['commentaire']))
-        ) {
+        if (!is_array($data)) {
+            return $this->json(['message' => 'Corps JSON invalide.'], 400);
+        }
+
+        $trajetId = (int) ($data['trajetId'] ?? 0);
+        $commentaire = trim((string) ($data['commentaire'] ?? ''));
+        $note = (int) ($data['note'] ?? 5);
+        if ($commentaire === '') {
+            return $this->json(['message' => 'Commentaire obligatoire.'], 400);
+        }
+
+        if ($note < 1 || $note > 5) {
+            return $this->json(['message' => 'La note doit etre comprise entre 1 et 5.'], 400);
+        }
+
+        $pseudo = trim((string) ($data['pseudo'] ?? ''));
+
+        if ($trajetId <= 0 && $pseudo === '') {
             return $this->json(['message' => 'Champs manquants.'], 400);
         }
 
         $avis = new Avis();
-        $avis->setPseudo($data['pseudo']);
-        $avis->setCommentaire($data['commentaire']);
+        $avis->setPseudo($pseudo);
+        $avis->setCommentaire($commentaire);
+        $avis->setNote($note);
         $avis->setValidated(false);
         $avis->setCreatedAt(new \DateTimeImmutable());
+
+        if ($trajetId > 0) {
+            $trajet = $trajetRepository->find($trajetId);
+            if ($trajet === null) {
+                return $this->json(['message' => 'Trajet introuvable.'], 404);
+            }
+
+            /** @var Utilisateur|null $utilisateur */
+            $utilisateur = $this->getUser();
+            if (!$utilisateur instanceof Utilisateur) {
+                return $this->json(['message' => 'Connexion requise pour laisser un avis sur un trajet.'], 401);
+            }
+
+            if ($trajet->getStatut() !== 'termine') {
+                return $this->json(['message' => 'Avis possible uniquement apres arrivee du trajet.'], 400);
+            }
+
+            $participation = $participationRepository->findOneBy([
+                'utilisateur' => $utilisateur,
+                'trajet' => $trajet,
+            ]);
+            if ($participation === null) {
+                return $this->json(['message' => 'Seuls les passagers participants peuvent laisser un avis sur ce trajet.'], 403);
+            }
+
+            $avis->setPseudo((string) $utilisateur->getPseudo());
+            $avis->setTrajet($trajet);
+        }
 
         $em->persist($avis);
         $em->flush();
@@ -49,6 +100,11 @@ class AvisController extends AbstractController
     #[Route('/pending', name: 'get_pending_avis', methods: ['GET'])]
     public function getPendingAvis(AvisRepository $repo): JsonResponse
     {
+        $acces = $this->refuserSiPasEmployeOuAdmin();
+        if ($acces instanceof JsonResponse) {
+            return $acces;
+        }
+
         $avis = $repo->findBy(['isValidated' => false], ['createdAt' => 'ASC']);
 
         // auch hier groups "avis:read"
@@ -58,6 +114,11 @@ class AvisController extends AbstractController
     #[Route('/{id}/validate', name: 'validate_avis', methods: ['POST'])]
     public function validateAvis(Avis $avis, EntityManagerInterface $em): JsonResponse
     {
+        $acces = $this->refuserSiPasEmployeOuAdmin();
+        if ($acces instanceof JsonResponse) {
+            return $acces;
+        }
+
         if ($avis->isValidated()) {
             return $this->json(['message' => 'Cet avis est déjà validé.'], 400);
         }
@@ -70,9 +131,32 @@ class AvisController extends AbstractController
     #[Route('/{id}', name: 'delete_avis', methods: ['DELETE'])]
     public function deleteAvis(Avis $avis, EntityManagerInterface $em): JsonResponse
     {
+        $acces = $this->refuserSiPasEmployeOuAdmin();
+        if ($acces instanceof JsonResponse) {
+            return $acces;
+        }
+
         $em->remove($avis);
         $em->flush();
 
         return $this->json(['message' => 'Avis supprimé.']);
+    }
+
+    private function refuserSiPasEmployeOuAdmin(): ?JsonResponse
+    {
+        /** @var Utilisateur|null $utilisateur */
+        $utilisateur = $this->getUser();
+        if (!$utilisateur instanceof Utilisateur) {
+            return $this->json(['message' => 'Non authentifie.'], 401);
+        }
+
+        $roles = $utilisateur->getRoles();
+        $estEmploye = in_array('ROLE_EMPLOYEE', $roles, true);
+        $estAdmin = in_array('ROLE_ADMIN', $roles, true);
+        if (!$estEmploye && !$estAdmin) {
+            return $this->json(['message' => 'Acces reserve aux employes et administrateurs.'], 403);
+        }
+
+        return null;
     }
 }

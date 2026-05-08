@@ -1,5 +1,5 @@
-console.log("js funktioniert");
 let lastResults = [];
+const URL_DETAIL_COVOITURAGE = `${window.location.origin}/EcoRide/Front/covoiturage-detail`;
 
 function initCovoiturageSearch() {
     const searchForm = document.getElementById("search-itineraries");
@@ -10,6 +10,18 @@ function initCovoiturageSearch() {
 
     searchForm.addEventListener("submit", async (e) => {
         e.preventDefault();
+        await lancerRechercheAvecFiltres();
+    });
+
+    // filter button filter anwenden auf letzte ergebnisse
+    const filterBtn = document.getElementById("apply-filters");
+    if (filterBtn) {
+        filterBtn.addEventListener("click", async () => {
+            await lancerRechercheAvecFiltres();
+        });
+    }
+
+    async function lancerRechercheAvecFiltres() {
         const departure = document.getElementById("departure").value.trim();
         const destination = document.getElementById("destination").value.trim();
         const date = document.getElementById("travel-date").value;
@@ -18,55 +30,42 @@ function initCovoiturageSearch() {
             alert("Veuillez remplir tous les champs.");
             return;
         }
+
         noItineraries.classList.add("d-none");
         itinerariesContainer.classList.remove("d-none");
         itinerariesContainer.innerHTML = "<div class='text-center text-muted'>Recherche en cours…</div>";
 
         try {
-            const params = new URLSearchParams({ departure, destination, date }).toString();
-            const res = await fetch(`http://localhost:8000/api/trajet/search?${params}`);
+            const ecological = document.getElementById("filter-ecological")?.value || "all";
+            const maxPrice = parseFloat(document.getElementById("filter-price")?.value || "");
+            const maxDuration = parseFloat(document.getElementById("filter-duration")?.value || "");
+            const minRating = parseFloat(document.getElementById("filter-rating")?.value || "");
+
+            const params = new URLSearchParams({ departure, destination, date });
+            if (ecological === "ecological") {
+                params.set("ecoOnly", "1");
+            }
+            if (!Number.isNaN(maxPrice)) {
+                params.set("maxPrice", String(maxPrice));
+            }
+            if (!Number.isNaN(maxDuration)) {
+                params.set("maxDuration", String(maxDuration));
+            }
+            if (!Number.isNaN(minRating)) {
+                params.set("minRating", String(minRating));
+            }
+
+            const res = await fetch(`http://localhost:8000/api/trajet/search?${params.toString()}`);
             if (!res.ok) throw new Error("Erreur lors de la recherche.");
 
-            let trajets = await res.json();
-            lastResults = trajets; // speichere für Filter
-            renderItineraries(trajets);
+            const trajets = await res.json();
+            lastResults = Array.isArray(trajets) ? trajets : [];
+            renderItineraries(lastResults);
         } catch (e) {
             itinerariesContainer.innerHTML = "";
             noItineraries.textContent = "Erreur lors de la recherche.";
             noItineraries.classList.remove("d-none");
         }
-    });
-
-    // filter button filter anwenden auf letzte ergebnisse
-    const filterBtn = document.getElementById("apply-filters");
-    if (filterBtn) {
-        filterBtn.addEventListener("click", () => {
-            if (!lastResults.length) return;
-            let filtered = [...lastResults];
-
-            // Ecologique filter
-            const ecological = document.getElementById("filter-ecological").value;
-            if (ecological === "ecological") {
-                filtered = filtered.filter(t => t.eco);
-            }
-            // preis filter
-            const maxPrice = parseFloat(document.getElementById("filter-price").value);
-            if (!isNaN(maxPrice)) {
-                filtered = filtered.filter(t => t.prix <= maxPrice);
-            }
-            // dauer filter (stunden)
-            const maxDuration = parseFloat(document.getElementById("filter-duration").value);
-            if (!isNaN(maxDuration)) {
-                filtered = filtered.filter(t => calcDurationInHours(t.departAt, t.arriveeAt) <= maxDuration);
-            }
-            // bewertung filter
-            const minRating = parseFloat(document.getElementById("filter-rating").value);
-            if (!isNaN(minRating)) {
-                filtered = filtered.filter(t => (t.rating ?? 5) >= minRating);
-            }
-
-            renderItineraries(filtered);
-        });
     }
 }
 
@@ -100,8 +99,8 @@ function renderItineraries(trajets) {
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
-                        <img src="${t.driverPhoto || '/images/driver-placeholder.jpg'}" alt="Photo du chauffeur" class="rounded-circle me-3" width="50" height="50">
-                        <img src="${t.carPhoto || '/images/car-placeholder.jpg'}" alt="Photo de la voiture" class="rounded me-3" width="50" height="50">
+                        ${t.driverPhoto ? `<img src="${t.driverPhoto}" alt="Photo du chauffeur" class="rounded-circle me-3 object-fit-cover" width="50" height="50">` : ""}
+                        ${t.carPhoto ? `<img src="${t.carPhoto}" alt="Photo de la voiture" class="rounded me-3 object-fit-cover" width="50" height="50">` : ""}
                         <div>
                             <h5 class="card-title mb-0">${t.driverName || "Chauffeur"}</h5>
                             <small class="text-muted">Note : ${(t.rating ?? "5")}/5</small>
@@ -113,11 +112,14 @@ function renderItineraries(trajets) {
                     <p class="card-text">Places restantes : <strong>${t.placesLibres}</strong></p>
                     <p class="card-text">Prix : <strong>${t.prix}€</strong></p>
                     <p class="card-text">Type de trajet : <strong>${t.eco ? "Écologique" : "Classique"}</strong></p>
-                    <a href="/pages/details.html?id=${t.id}" class="btn btn-success">Détail</a>
+                    <a href="${URL_DETAIL_COVOITURAGE}?id=${encodeURIComponent(t.id)}" class="btn btn-success">Détail</a>
+                    ${construireActionsAdminCovoiturage(t)}
                 </div>
             </div>
         </div>
     `).join("");
+
+    activerActionsAdminCovoiturage(itinerariesContainer);
 }
 
 // Formatierer
@@ -126,6 +128,106 @@ function formatDate(str) {
 }
 function formatHeure(str) {
     return new Date(str).toLocaleTimeString('fr-FR', { hour: "2-digit", minute: "2-digit" });
+}
+
+function estAdminConnecteCovoiturage() {
+    return typeof window.getRole === "function" && window.getRole() === "ROLE_ADMIN";
+}
+
+function construireActionsAdminCovoiturage(trajet) {
+    if (!estAdminConnecteCovoiturage()) {
+        return "";
+    }
+
+    return `
+        <div class="d-flex gap-2 mt-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-admin-modifier-trajet-covoiturage="${trajet.id}">Modifier</button>
+            <button type="button" class="btn btn-sm btn-outline-danger" data-admin-supprimer-trajet-covoiturage="${trajet.id}">Supprimer</button>
+        </div>
+    `;
+}
+
+function activerActionsAdminCovoiturage(conteneur) {
+    if (!estAdminConnecteCovoiturage()) {
+        return;
+    }
+
+    conteneur.querySelectorAll("[data-admin-modifier-trajet-covoiturage]").forEach((bouton) => {
+        bouton.addEventListener("click", async () => {
+            const idTrajet = bouton.getAttribute("data-admin-modifier-trajet-covoiturage");
+            if (!idTrajet) {
+                return;
+            }
+            const nouveauPrix = window.prompt("Nouveau prix du trajet :");
+            if (nouveauPrix === null) {
+                return;
+            }
+            const nouvellesPlaces = window.prompt("Nouveau nombre de places libres :");
+            if (nouvellesPlaces === null) {
+                return;
+            }
+            await modifierTrajetAdminCovoiturage(idTrajet, nouveauPrix, nouvellesPlaces);
+            const formulaireRecherche = document.getElementById("search-itineraries");
+            formulaireRecherche?.requestSubmit();
+        });
+    });
+
+    conteneur.querySelectorAll("[data-admin-supprimer-trajet-covoiturage]").forEach((bouton) => {
+        bouton.addEventListener("click", async () => {
+            const idTrajet = bouton.getAttribute("data-admin-supprimer-trajet-covoiturage");
+            if (!idTrajet) {
+                return;
+            }
+            if (!window.confirm("Supprimer ce trajet ? Les participants seront rembourses.")) {
+                return;
+            }
+            await supprimerTrajetAdminCovoiturage(idTrajet);
+            document.getElementById("search-itineraries")?.requestSubmit();
+        });
+    });
+}
+
+async function modifierTrajetAdminCovoiturage(idTrajet, prix, placesLibres) {
+    const token = typeof window.getToken === "function" ? window.getToken() : null;
+    if (!token) {
+        alert("Connexion admin requise.");
+        return;
+    }
+
+    const reponse = await fetch(`http://localhost:8000/api/trajet/${idTrajet}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "X-AUTH-TOKEN": token,
+        },
+        body: JSON.stringify({
+            prix: Number.parseFloat(prix),
+            placesLibres: Number.parseInt(placesLibres, 10),
+        }),
+    });
+    if (!reponse.ok) {
+        const resultat = await reponse.json().catch(() => ({}));
+        throw new Error(resultat.message || "Modification impossible.");
+    }
+}
+
+async function supprimerTrajetAdminCovoiturage(idTrajet) {
+    const token = typeof window.getToken === "function" ? window.getToken() : null;
+    if (!token) {
+        alert("Connexion admin requise.");
+        return;
+    }
+
+    const reponse = await fetch(`http://localhost:8000/api/admin/trajets/${idTrajet}`, {
+        method: "DELETE",
+        headers: {
+            "X-AUTH-TOKEN": token,
+        },
+    });
+    if (!reponse.ok) {
+        const resultat = await reponse.json().catch(() => ({}));
+        throw new Error(resultat.message || "Suppression impossible.");
+    }
 }
 
 // Init sofort aufrufen (SPA-Ready)

@@ -47,6 +47,10 @@ class ApiTokenAuthenticator extends AbstractAuthenticator
             throw new UserNotFoundException();
         }
 
+        if ($utilisateur->isSuspended()) {
+            throw new CustomUserMessageAuthenticationException('Compte suspendu');
+        }
+
         return new SelfValidatingPassport(new UserBadge($utilisateur->getUserIdentifier()));
     }
 

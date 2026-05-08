@@ -1,0 +1,45 @@
+<div class="hero-scene text-center text-white">
+    <div class="hero-scene-content">
+        <h1>Mon historique</h1>
+    </div>
+</div>
+
+<div class="container py-4">
+    <div id="historiqueMessage" class="mb-3"></div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-4">
+                    <label for="historiqueStatusFilter" class="form-label">Filtrer</label>
+                    <select id="historiqueStatusFilter" class="form-select">
+                        <option value="all">Tous</option>
+                        <option value="coming">A venir</option>
+                        <option value="past">Passes</option>
+                    </select>
+                </div>
+                <div class="col-md-4 d-none" id="historiqueAdminUserFilterBloc">
+                    <label for="historiqueUserIdFilter" class="form-label">User ID (admin)</label>
+                    <input id="historiqueUserIdFilter" type="number" min="1" class="form-control" placeholder="Ex: 3">
+                </div>
+                <div class="col-md-2">
+                    <button id="historiqueApplyFilter" type="button" class="btn btn-outline-success w-100">Appliquer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h2 class="h5 mb-3">Mes participations</h2>
+            <div id="historiqueParticipations" class="row g-3"></div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h2 class="h5 mb-3">Mes trajets en tant que chauffeur</h2>
+            <div id="historiqueTrajetsConducteur" class="row g-3"></div>
+        </div>
+    </div>
+</div>

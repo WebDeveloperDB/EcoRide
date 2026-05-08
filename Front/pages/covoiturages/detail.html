@@ -1,0 +1,96 @@
+<div class="hero-scene text-center text-white">
+    <div class="hero-scene-content">
+        <h1>Détail du covoiturage</h1>
+    </div>
+</div>
+
+<div class="container">
+    <div id="detailTrajetChargement" class="text-center text-muted py-3">Chargement du trajet...</div>
+
+    <div id="detailTrajetBloc" class="d-none">
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3 gap-3 flex-wrap">
+                    <img id="detailPhotoConducteur" class="rounded-circle object-fit-cover" width="72" height="72" alt="Conducteur">
+                    <img id="detailPhotoVehicule" class="rounded object-fit-cover" width="96" height="72" alt="Véhicule">
+                    <div>
+                        <h3 id="detailNomConducteur" class="h5 mb-1">Conducteur</h3>
+                        <p id="detailVehicule" class="mb-0 text-muted"></p>
+                    </div>
+                </div>
+
+                <p class="mb-1"><strong>Trajet:</strong> <span id="detailTrajet"></span></p>
+                <p class="mb-1"><strong>Date:</strong> <span id="detailDate"></span></p>
+                <p class="mb-1"><strong>Horaire:</strong> <span id="detailHeure"></span></p>
+                <p class="mb-1"><strong>Prix:</strong> <span id="detailPrix"></span></p>
+                <p class="mb-1"><strong>Places libres:</strong> <span id="detailPlaces"></span></p>
+                <p class="mb-1"><strong>Type:</strong> <span id="detailType"></span></p>
+                <p class="mb-0"><strong>Statut:</strong> <span id="detailStatut"></span></p>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h2 class="h5">Préférences du conducteur</h2>
+                <ul id="detailPreferences" class="mb-0"></ul>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h2 class="h5">Avis du conducteur</h2>
+                <div id="detailAvis"></div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h2 class="h5">Laisser un avis sur ce trajet</h2>
+                <div id="messageConditionAvis" class="small text-muted mb-2"></div>
+                <form id="formulaireAvisTrajet" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="avisTrajetPseudo" class="form-label">Pseudo</label>
+                        <input type="text" id="avisTrajetPseudo" class="form-control" required>
+                    </div>
+                    <div class="col-md-5">
+                        <label for="avisTrajetCommentaire" class="form-label">Commentaire</label>
+                        <input type="text" id="avisTrajetCommentaire" class="form-control" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="avisTrajetNote" class="form-label">Note</label>
+                        <select id="avisTrajetNote" class="form-select" required>
+                            <option value="5">5</option>
+                            <option value="4">4</option>
+                            <option value="3">3</option>
+                            <option value="2">2</option>
+                            <option value="1">1</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-outline-success">Envoyer l'avis</button>
+                    </div>
+                </form>
+                <div id="messageAvisTrajet" class="pt-2"></div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h2 class="h5">Participation</h2>
+                <p class="mb-1">Participer reserve une place et debite vos credits.</p>
+                <p class="mb-0">Vous retrouvez ensuite ce trajet dans <a href="/EcoRide/Front/historique">Historique</a>.</p>
+                <div id="messageParticipationDetail" class="pt-2"></div>
+            </div>
+        </div>
+
+        <div class="text-center mb-4">
+            <button type="button" class="btn btn-success" id="btnParticiperDetail">Participer</button>
+            <button type="button" class="btn btn-outline-secondary d-none" id="btnModifierTrajetAdminDetail">Modifier</button>
+            <button type="button" class="btn btn-outline-danger d-none" id="btnSupprimerTrajetAdminDetail">Supprimer</button>
+            <button type="button" class="btn btn-outline-primary d-none" id="btnDemarrerTrajetDetail">Demarrer</button>
+            <button type="button" class="btn btn-outline-dark d-none" id="btnArriveeTrajetDetail">Arrivee</button>
+        </div>
+    </div>
+
+    <div id="detailTrajetErreur" class="text-danger text-center d-none"></div>
+</div>

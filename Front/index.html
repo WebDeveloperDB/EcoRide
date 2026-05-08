@@ -21,9 +21,13 @@
           <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
             <li class="nav-item active text-white"><a class="nav-link text-white" href="/EcoRide/Front/">Accueil</a></li>
             <li class="nav-item"><a class="nav-link text-white" href="/EcoRide/Front/covoiturage">Covoiturages</a></li>
-            <li class="nav-item"><a class="nav-link text-white" href="/EcoRide/Front/signup">Inscription</a></li>
+            <li class="nav-item" data-show="connected" data-show-driver="true"><a class="nav-link text-white" href="/EcoRide/Front/creer-trajet">Créer un trajet</a></li>
+            <li class="nav-item" data-show="connected"><a class="nav-link text-white" href="/EcoRide/Front/historique">Historique</a></li>
+            <li class="nav-item" data-show="admin"><a class="nav-link text-white" href="/EcoRide/Front/admin-dashboard">Admin</a></li>
+            <li class="nav-item" data-show="admin"><a class="nav-link text-white" href="/EcoRide/Front/admin-mongo-stats">Mongo Stats</a></li>
+            <li class="nav-item" data-show="disconnected"><a class="nav-link text-white" href="/EcoRide/Front/signup">Inscription</a></li>
             <li class="nav-item"><a class="nav-link text-white" href="/EcoRide/Front/contact">Contact</a></li>
-            <li class="nav-item"><a class="nav-link text-white" href="/EcoRide/Front/account">Mon compte</a></li>
+            <li class="nav-item" data-show="connected"><a class="nav-link text-white" href="/EcoRide/Front/account">Mon compte</a></li>
             <li class="nav-item" data-show="disconnected"><a class="nav-link text-white" href="/EcoRide/Front/signin">Connexion</a></li>
             <li class="nav-item" data-show="connected"> <button class="nav-link text-white" id="signout-btn">Déconnexion</button></li>
           </ul>
@@ -37,7 +41,7 @@
         <div class="container">
             <p>&copy; 2026 EcoRide. Tous droits réservés.</p>
             <p>Contactez-nous : <a href="mailto:contact@ecoride.com" class="text-white">contact@ecoride.com</a></p>
-            <a href="pages/mentions-legales.html" class="text-white">Mentions légales</a>
+            <a href="/EcoRide/Front/mentions-legales" class="text-white">Mentions légales</a>
         </div>
     </footer>
 

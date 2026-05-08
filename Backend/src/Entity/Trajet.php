@@ -59,6 +59,18 @@ class Trajet
     #[Groups(["trajet:read"])]
     private int $placesLibres = 1;
 
+    #[ORM\Column(length: 20)]
+    #[Groups(["trajet:read"])]
+    private string $statut = 'planifie';
+
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Utilisateur $conducteur = null;
+
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Vehicule $vehiculeRef = null;
+
     // ----- GETTER UND SETTER ------
 
     public function getId(): ?int
@@ -184,6 +196,42 @@ class Trajet
     public function setPlacesLibres(int $placesLibres): static
     {
         $this->placesLibres = $placesLibres;
+        return $this;
+    }
+
+    public function getStatut(): string
+    {
+        return $this->statut;
+    }
+
+    public function setStatut(string $statut): static
+    {
+        $this->statut = $statut;
+
+        return $this;
+    }
+
+    public function getConducteur(): ?Utilisateur
+    {
+        return $this->conducteur;
+    }
+
+    public function setConducteur(?Utilisateur $conducteur): static
+    {
+        $this->conducteur = $conducteur;
+
+        return $this;
+    }
+
+    public function getVehiculeRef(): ?Vehicule
+    {
+        return $this->vehiculeRef;
+    }
+
+    public function setVehiculeRef(?Vehicule $vehiculeRef): static
+    {
+        $this->vehiculeRef = $vehiculeRef;
+
         return $this;
     }
 }

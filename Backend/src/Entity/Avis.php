@@ -24,12 +24,20 @@ class Avis
     #[Groups(["avis:read"])]
     private ?string $commentaire = null;
 
+    #[ORM\Column(type: 'smallint', options: ['default' => 5])]
+    #[Groups(["avis:read"])]
+    private int $note = 5;
+
     #[ORM\Column(type: "boolean")]
     private ?bool $isValidated = false;
 
     #[ORM\Column(type: "datetime_immutable")]
     #[Groups(["avis:read"])]
     private ?\DateTimeImmutable $createdAt = null;
+
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Trajet $trajet = null;
 
     public function getId(): ?int
     {
@@ -60,6 +68,18 @@ class Avis
         return $this;
     }
 
+    public function getNote(): int
+    {
+        return $this->note;
+    }
+
+    public function setNote(int $note): static
+    {
+        $this->note = max(1, min(5, $note));
+
+        return $this;
+    }
+
     public function isValidated(): ?bool
     {
         return $this->isValidated;
@@ -80,6 +100,18 @@ class Avis
     public function setCreatedAt(?\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getTrajet(): ?Trajet
+    {
+        return $this->trajet;
+    }
+
+    public function setTrajet(?Trajet $trajet): static
+    {
+        $this->trajet = $trajet;
 
         return $this;
     }

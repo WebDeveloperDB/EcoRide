@@ -44,4 +44,36 @@ class TrajetRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getResult();
     }
+
+    /**
+     * @param int[] $trajetIds
+     * @return array<int, float>
+     */
+    public function findAverageRatingsByTrajetIds(array $trajetIds): array
+    {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $trajetIds), static fn (int $id): bool => $id > 0)));
+        if (!$ids) {
+            return [];
+        }
+
+        $rows = $this->getEntityManager()->createQueryBuilder()
+            ->select('IDENTITY(a.trajet) AS trajetId', 'AVG(a.note) AS rating')
+            ->from('App\\Entity\\Avis', 'a')
+            ->where('a.isValidated = true')
+            ->andWhere('a.trajet IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->groupBy('a.trajet')
+            ->getQuery()
+            ->getArrayResult();
+
+        $result = [];
+        foreach ($rows as $row) {
+            $trajetId = (int) ($row['trajetId'] ?? 0);
+            if ($trajetId > 0) {
+                $result[$trajetId] = round((float) ($row['rating'] ?? 0), 1);
+            }
+        }
+
+        return $result;
+    }
 }
